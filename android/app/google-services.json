@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "1045369989570",
+    "project_id": "unibike-13780",
+    "storage_bucket": "unibike-13780.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1045369989570:android:3128787e5551849d954e5b",
+        "android_client_info": {
+          "package_name": "com.example.unibike"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "1045369989570-37soev92k9ddfhm0iiumho027no47r6a.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyA6tTNgmDkW9varQSlL8DiWbmqAP3C9TVM"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "1045369989570-37soev92k9ddfhm0iiumho027no47r6a.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
