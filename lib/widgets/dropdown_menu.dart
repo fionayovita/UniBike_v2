@@ -111,7 +111,8 @@ class DropDownMenuState extends State<DropDownMenu> {
                     Text('Pilih fakultas untuk melihat jumlah sepeda',
                         style: Theme.of(context).textTheme.subtitle1),
                     SizedBox(height: 40.0),
-                    Image.asset("assets/logoBulet.png", width: 250, height: 250)
+                    Image.asset("assets/emptystate_bike.png",
+                        width: 250, height: 250)
                   ],
                 )
               : Column(

@@ -37,7 +37,7 @@ class ListSepeda extends StatelessWidget {
                     onDebt: true,
                     statusPinjam: 1,
                     fakultas: fakultas,
-                    onPressedPinjam: ((bool) => null),
+                    onPressedPinjam: ((bool, int) => null),
                   );
                 },
               ),

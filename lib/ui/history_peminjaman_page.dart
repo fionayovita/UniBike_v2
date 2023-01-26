@@ -68,7 +68,7 @@ class HistoryPeminjamanPage extends StatelessWidget {
                 child: Column(
                   children: <Widget>[
                     Image.asset(
-                      'assets/logoBulet.png',
+                      'assets/errorstate.png',
                       width: 250,
                       height: 250,
                     ),
@@ -86,7 +86,7 @@ class HistoryPeminjamanPage extends StatelessWidget {
                 child: Column(
                   children: <Widget>[
                     Image.asset(
-                      'assets/logoBulet.png',
+                      'assets/emptystate.png',
                       width: 250,
                       height: 250,
                     ),
@@ -121,7 +121,7 @@ class HistoryPeminjamanPage extends StatelessWidget {
                     child: Column(
                       children: <Widget>[
                         Image.asset(
-                          'assets/logoBulet.png',
+                          'assets/emptystate.png',
                           width: 250,
                           height: 250,
                         ),

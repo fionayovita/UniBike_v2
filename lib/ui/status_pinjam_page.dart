@@ -6,6 +6,7 @@ import 'package:provider/provider.dart';
 import 'package:unibike/common/styles.dart';
 import 'package:unibike/provider/alarm_provider.dart';
 import 'package:unibike/provider/preferences_provider.dart';
+import 'package:unibike/widgets/appbar.dart';
 
 class StatusPinjamPage extends StatefulWidget {
   static const routeName = 'status_pinjam_page';
@@ -43,18 +44,49 @@ class _StatusPinjamPageState extends State<StatusPinjamPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        automaticallyImplyLeading: false,
-        title: Text('Status Peminjaman',
-            style: Theme.of(context).textTheme.headline5),
-        toolbarHeight: 70,
-        bottom: PreferredSize(
-            child: Container(
-              color: Colors.black12,
-              height: 0.3,
-            ),
-            preferredSize: Size.fromHeight(4.0)),
-      ),
+      backgroundColor: whiteBackground,
+      appBar: CustomAppBar(text: "Status Peminjaman"),
+      // appBar: AppBar(
+      //   automaticallyImplyLeading: false,
+      //   title: Column(
+      //       crossAxisAlignment: CrossAxisAlignment.start,
+      //       mainAxisSize: MainAxisSize.min,
+      //       children: <Widget>[
+      //         Row(
+      //           children: [
+      //             Container(
+      //               margin: const EdgeInsets.only(right: 15),
+      //               child: CircleAvatar(
+      //                 backgroundColor: mediumBlue,
+      //                 child: IconButton(
+      //                   icon: Icon(Icons.arrow_back, color: primaryColor),
+      //                   onPressed: () {
+      //                     Navigator.pop(context);
+      //                   },
+      //                 ),
+      //               ),
+      //             ),
+      //             SizedBox(
+      //                 width: MediaQuery.of(context).size.width - 120,
+      //                 child: Text(
+      //                   "Status Peminjaman",
+      //                   style: Theme.of(context).textTheme.headline5,
+      //                   maxLines: 2,
+      //                   overflow: TextOverflow.ellipsis,
+      //                 ))
+      //           ],
+      //         ),
+      //         SizedBox(height: 2),
+      //         Divider(color: underline),
+      //       ]),
+      //   toolbarHeight: 70,
+      //   bottom: PreferredSize(
+      //       child: Container(
+      //         color: Colors.black12,
+      //         height: 0.3,
+      //       ),
+      //       preferredSize: Size.fromHeight(4.0)),
+      // ),
       body: SafeArea(
         child: Center(
           child: SingleChildScrollView(
@@ -88,7 +120,7 @@ class _StatusPinjamPageState extends State<StatusPinjamPage> {
               child: Column(
                 children: <Widget>[
                   Image.asset(
-                    'assets/logoBulet.png',
+                    'assets/errorstate.png',
                     width: 250,
                     height: 250,
                   ),
@@ -106,7 +138,7 @@ class _StatusPinjamPageState extends State<StatusPinjamPage> {
                 child: Column(
                   children: <Widget>[
                     Image.asset(
-                      'assets/logoBulet.png',
+                      'assets/emptystate.png',
                       width: 250,
                       height: 250,
                     ),
@@ -131,7 +163,7 @@ class _StatusPinjamPageState extends State<StatusPinjamPage> {
 
             return Container(
               width: width,
-              margin: const EdgeInsets.only(top: 30, bottom: 30),
+              margin: const EdgeInsets.symmetric(vertical: 30, horizontal: 20),
               padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
               decoration: BoxDecoration(
                 color: secondaryColor,
@@ -211,163 +243,173 @@ class _StatusPinjamPageState extends State<StatusPinjamPage> {
                               showDialog(
                                   context: context,
                                   builder: (BuildContext context) {
-                                    return new SimpleDialog(
-                                      shape: RoundedRectangleBorder(
-                                        borderRadius:
-                                            BorderRadius.circular(8.0),
-                                      ),
-                                      elevation: 0,
-                                      title: new Text(
-                                          'Fakultas pengembalian sepeda: ${fakultas == null ? '' : fakultas}',
-                                          style: Theme.of(context)
-                                              .textTheme
-                                              .headline5),
-                                      children: <Widget>[
-                                        Padding(
-                                          padding: EdgeInsets.symmetric(
-                                              horizontal: 20, vertical: 10),
-                                          child: Container(
-                                            width: MediaQuery.of(context)
-                                                .size
-                                                .width,
+                                    return StatefulBuilder(
+                                        builder: (context, setState) {
+                                      return new SimpleDialog(
+                                        shape: RoundedRectangleBorder(
+                                          borderRadius:
+                                              BorderRadius.circular(8.0),
+                                        ),
+                                        elevation: 0,
+                                        title: new Text(
+                                            'Fakultas pengembalian sepeda: ',
+                                            style: Theme.of(context)
+                                                .textTheme
+                                                .headline5),
+                                        children: <Widget>[
+                                          Padding(
                                             padding: EdgeInsets.symmetric(
-                                                horizontal: 17, vertical: 5),
-                                            decoration: BoxDecoration(
-                                              color: secondaryColor,
-                                              borderRadius:
-                                                  BorderRadius.circular(10),
-                                              boxShadow: [
-                                                BoxShadow(
-                                                  color: Colors.grey
-                                                      .withOpacity(0.7),
-                                                  spreadRadius: 2,
-                                                  blurRadius: 3,
-                                                  offset: Offset(0, 3),
-                                                )
-                                              ],
-                                            ),
-                                            child: DropdownButtonHideUnderline(
-                                              child: ButtonTheme(
-                                                child: DropdownButton(
-                                                  iconEnabledColor:
-                                                      primaryColor,
-                                                  dropdownColor: secondaryColor,
-                                                  hint: Text("Pilih Fakultas",
-                                                      style: Theme.of(context)
-                                                          .textTheme
-                                                          .subtitle2),
-                                                  value: fakultas,
-                                                  items: _listFakultas.map(
-                                                    (value) {
-                                                      return DropdownMenuItem<
-                                                          String>(
-                                                        child: Text(value,
-                                                            style: Theme.of(
-                                                                    context)
-                                                                .textTheme
-                                                                .subtitle2),
-                                                        value: value,
+                                                horizontal: 20, vertical: 10),
+                                            child: Container(
+                                              width: MediaQuery.of(context)
+                                                  .size
+                                                  .width,
+                                              padding: EdgeInsets.symmetric(
+                                                  horizontal: 17, vertical: 5),
+                                              decoration: BoxDecoration(
+                                                color: secondaryColor,
+                                                borderRadius:
+                                                    BorderRadius.circular(10),
+                                                boxShadow: [
+                                                  BoxShadow(
+                                                    color: Colors.grey
+                                                        .withOpacity(0.7),
+                                                    spreadRadius: 2,
+                                                    blurRadius: 3,
+                                                    offset: Offset(0, 3),
+                                                  )
+                                                ],
+                                              ),
+                                              child:
+                                                  DropdownButtonHideUnderline(
+                                                child: ButtonTheme(
+                                                  child: DropdownButton(
+                                                    iconEnabledColor:
+                                                        primaryColor,
+                                                    dropdownColor:
+                                                        secondaryColor,
+                                                    hint: Text("Pilih Fakultas",
+                                                        style: Theme.of(context)
+                                                            .textTheme
+                                                            .subtitle2),
+                                                    value: fakultas,
+                                                    items: _listFakultas.map(
+                                                      (value) {
+                                                        return DropdownMenuItem<
+                                                            String>(
+                                                          child: Text(value,
+                                                              style: Theme.of(
+                                                                      context)
+                                                                  .textTheme
+                                                                  .subtitle2),
+                                                          value: value,
+                                                        );
+                                                      },
+                                                    ).toList(),
+                                                    onChanged: (value) {
+                                                      setState(
+                                                        () {
+                                                          fakultas =
+                                                              value as String;
+                                                          var idx =
+                                                              _listFakultas
+                                                                  .indexOf(
+                                                                      value);
+                                                          widget.fakultasState =
+                                                              _fakultasDb[idx];
+                                                        },
                                                       );
                                                     },
-                                                  ).toList(),
-                                                  onChanged: (value) {
-                                                    setState(
-                                                      () {
-                                                        fakultas =
-                                                            value as String;
-                                                        var idx = _listFakultas
-                                                            .indexOf(value);
-                                                        widget.fakultasState =
-                                                            _fakultasDb[idx];
-                                                      },
-                                                    );
-                                                  },
+                                                  ),
                                                 ),
                                               ),
                                             ),
                                           ),
-                                        ),
-                                        Padding(
-                                          padding: EdgeInsets.symmetric(
-                                              horizontal: 20),
-                                          child: Align(
-                                            alignment: Alignment.bottomRight,
-                                            child: TextButton(
-                                              onPressed: () {
-                                                print(
-                                                    "valueee ${widget.fakultasState}");
-                                                var waktuKembali =
-                                                    DateTime.now();
-                                                String dateFormatKembali =
-                                                    DateFormat(
-                                                            'EEE d MMM, hh:mm a')
-                                                        .format(waktuKembali);
+                                          Padding(
+                                            padding: EdgeInsets.symmetric(
+                                                horizontal: 20),
+                                            child: Align(
+                                              alignment: Alignment.bottomRight,
+                                              child: TextButton(
+                                                onPressed: () {
+                                                  print(
+                                                      "valueee ${widget.fakultasState}");
+                                                  var waktuKembali =
+                                                      DateTime.now();
+                                                  String dateFormatKembali =
+                                                      DateFormat(
+                                                              'EEE d MMM, hh:mm a')
+                                                          .format(waktuKembali);
 
-                                                firestore
-                                                    .collection(
-                                                        'history_peminjaman')
-                                                    .doc(firebase
-                                                        .currentUser?.uid)
-                                                    .collection('user_history')
-                                                    .doc()
-                                                    .set(
-                                                  {
-                                                    'id_sepeda':
-                                                        data['id_sepeda'],
-                                                    'jenis_sepeda':
-                                                        data['jenis_sepeda'],
-                                                    'email_peminjam':
-                                                        data['email_peminjam'],
-                                                    'waktu_pinjam':
-                                                        data['waktu_pinjam'],
-                                                    'waktu_kembali':
-                                                        dateFormatKembali,
-                                                    'fakultas': data['fakultas']
-                                                  },
-                                                );
+                                                  firestore
+                                                      .collection(
+                                                          'history_peminjaman')
+                                                      .doc(firebase
+                                                          .currentUser?.uid)
+                                                      .collection(
+                                                          'user_history')
+                                                      .doc()
+                                                      .set(
+                                                    {
+                                                      'id_sepeda':
+                                                          data['id_sepeda'],
+                                                      'jenis_sepeda':
+                                                          data['jenis_sepeda'],
+                                                      'email_peminjam': data[
+                                                          'email_peminjam'],
+                                                      'waktu_pinjam':
+                                                          data['waktu_pinjam'],
+                                                      'waktu_kembali':
+                                                          dateFormatKembali,
+                                                      'fakultas':
+                                                          data['fakultas']
+                                                    },
+                                                  );
 
-                                                firestore
-                                                    .collection(
-                                                        'data_peminjaman')
-                                                    .doc(firebase
-                                                        .currentUser?.uid)
-                                                    .delete()
-                                                    .then((value) {
-                                                  setState(() {
-                                                    statusPinjam = false;
-                                                  });
-                                                }).catchError((error) => print(
-                                                        "Failed to return bike: $error"));
+                                                  firestore
+                                                      .collection(
+                                                          'data_peminjaman')
+                                                      .doc(firebase
+                                                          .currentUser?.uid)
+                                                      .delete()
+                                                      .then((value) {
+                                                    setState(() {
+                                                      statusPinjam = false;
+                                                    });
+                                                  }).catchError((error) => print(
+                                                          "Failed to return bike: $error"));
 
-                                                firestore
-                                                    .collection('data_sepeda')
-                                                    .doc('${data['id_sepeda']}')
-                                                    .update(
-                                                  {
-                                                    'status': 'Tersedia',
-                                                    'fakultas':
-                                                        widget.fakultasState
-                                                  },
-                                                );
-                                                String currentUser = firebase
-                                                    .currentUser!.uid
-                                                    .toString();
-                                                users.doc(currentUser).update(
-                                                  {'status': 0},
-                                                );
-                                                Navigator.of(context).pop();
-                                              },
-                                              child: Text(
-                                                'Submit',
-                                                style: Theme.of(context)
-                                                    .textTheme
-                                                    .subtitle1,
+                                                  firestore
+                                                      .collection('data_sepeda')
+                                                      .doc(
+                                                          '${data['id_sepeda']}')
+                                                      .update(
+                                                    {
+                                                      'status': 'Tersedia',
+                                                      'fakultas':
+                                                          widget.fakultasState
+                                                    },
+                                                  );
+                                                  String currentUser = firebase
+                                                      .currentUser!.uid
+                                                      .toString();
+                                                  users.doc(currentUser).update(
+                                                    {'status': 0},
+                                                  );
+                                                  Navigator.of(context).pop();
+                                                },
+                                                child: Text(
+                                                  'Submit',
+                                                  style: Theme.of(context)
+                                                      .textTheme
+                                                      .subtitle1,
+                                                ),
                                               ),
                                             ),
-                                          ),
-                                        )
-                                      ],
-                                    );
+                                          )
+                                        ],
+                                      );
+                                    });
                                   });
                             },
                           );

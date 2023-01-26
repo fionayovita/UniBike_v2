@@ -12,7 +12,7 @@ class CardSepedaArgs {
   final ListSepeda bike;
   final String? fakultas;
   int? statusPinjam;
-  final Function(bool) onPressedPinjam;
+  final Function(bool, DateTime) onPressedPinjam;
   bool onDebt;
 
   CardSepedaArgs(
@@ -27,7 +27,7 @@ class CardSepeda extends StatefulWidget {
   final ListSepeda bike;
   final String? fakultas;
   int? statusPinjam;
-  final Function(bool) onPressedPinjam;
+  final Function(bool, DateTime) onPressedPinjam;
   bool onDebt;
 
   CardSepeda(
@@ -120,9 +120,8 @@ class _CardSepedaState extends State<CardSepeda> {
                                                 .bike.fields.jenisSepeda.value;
                                             var today = DateTime.now();
                                             var kembali =
-                                                today.add(Duration(minutes: 1));
+                                                today.add(Duration(hours: 4));
 
-                                            print('kalo ini ada ga');
                                             _store
                                                 .collection('data_peminjaman')
                                                 .doc(firebase.currentUser?.uid)
@@ -136,11 +135,11 @@ class _CardSepedaState extends State<CardSepeda> {
                                                 'fakultas': widget.fakultas
                                               },
                                             );
-                                            print('oke sama');
+
                                             sepeda.doc(docId).update(
                                               {'status': 'Tidak Tersedia'},
                                             );
-                                            print('nah ini ga ada');
+
                                             showDialog(
                                               context: context,
                                               builder: (BuildContext context) {
@@ -153,8 +152,8 @@ class _CardSepedaState extends State<CardSepeda> {
                                                 );
                                               },
                                             );
-                                            print('donew');
-                                            widget.onPressedPinjam(true);
+
+                                            widget.onPressedPinjam(true, today);
                                           } catch (e) {
                                             showDialog(
                                               context: context,
@@ -246,7 +245,7 @@ class _CardSepedaState extends State<CardSepeda> {
                   Navigator.of(context).pop();
                 },
                 style: ElevatedButton.styleFrom(
-                    minimumSize: Size(150, 50), primary: whiteBackground),
+                    minimumSize: Size(120, 50), primary: whiteBackground),
                 child: Text(
                   "Tidak",
                   style: Theme.of(context).textTheme.subtitle1,
@@ -257,7 +256,7 @@ class _CardSepedaState extends State<CardSepeda> {
                   Navigator.of(context).pop();
                   onPressedPinjam();
                 },
-                style: ElevatedButton.styleFrom(minimumSize: Size(150, 50)),
+                style: ElevatedButton.styleFrom(minimumSize: Size(120, 50)),
                 child: Text("Ya",
                     style: GoogleFonts.poppins(
                       fontSize: 15,

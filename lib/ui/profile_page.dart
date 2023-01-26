@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:unibike/common/styles.dart';
 import 'package:unibike/ui/login_page.dart';
+import 'package:unibike/widgets/appbar.dart';
 
 class ProfilePage extends StatefulWidget {
   static const routeName = 'profile_page';
@@ -25,6 +26,7 @@ class _ProfilePageState extends State<ProfilePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      // appBar: CustomAppBar(text: "Profile"),
       body: SafeArea(
         child: SingleChildScrollView(
           child: LayoutBuilder(
@@ -119,6 +121,30 @@ class _ProfilePageState extends State<ProfilePage> {
                                   .subtitle1); // placeholder
                         }
                       },
+                    ),
+                    Positioned(
+                      top: 10.0,
+                      left: 10.0,
+                      child: InkWell(
+                        onTap: () {
+                          showModalBottomSheet(
+                            context: context,
+                            builder: ((builder) => popUpOption()),
+                          );
+                        },
+                        child: Container(
+                          margin: const EdgeInsets.only(right: 15),
+                          child: CircleAvatar(
+                            backgroundColor: mediumBlue,
+                            child: IconButton(
+                              icon: Icon(Icons.arrow_back, color: primaryColor),
+                              onPressed: () {
+                                Navigator.pop(context);
+                              },
+                            ),
+                          ),
+                        ),
+                      ),
                     ),
                     Positioned(
                       bottom: 20.0,
@@ -222,7 +248,11 @@ class _ProfilePageState extends State<ProfilePage> {
                 ),
                 onPressed: () async {
                   await firebase.signOut();
-                  Navigator.pushReplacementNamed(context, LoginPage.routeName);
+                  Navigator.pushNamedAndRemoveUntil(
+                    context,
+                    LoginPage.routeName,
+                    (route) => false,
+                  );
                 },
               ),
             ],

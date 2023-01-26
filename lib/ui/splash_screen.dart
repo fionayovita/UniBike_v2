@@ -39,13 +39,20 @@ class _SplashScreenState extends State<SplashScreen>
             Container(
               decoration: BoxDecoration(color: Color(0xB3191720)),
             ),
-            Center(
-              child: Image.asset(
-                'assets/logo.png',
-                width: 300,
-                height: 300,
-              ),
-            ),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Center(
+                  child: Image.asset(
+                    'assets/logo_text_new.png',
+                    width: 300,
+                    // height: 00,
+                  ),
+                ),
+                Text('Your campus travel buddy')
+              ],
+            )
           ],
         ),
       ),
@@ -62,14 +69,20 @@ class _SplashScreenState extends State<SplashScreen>
   void initState() {
     super.initState();
 
+    String routeName() {
+      String name;
+      FirebaseAuth.instance.currentUser == null
+          ? name = LoginPage.routeName
+          : name = MainPage.routeName;
+      return name;
+    }
+
     Timer(
-      Duration(seconds: 5),
-      () => Navigator.pushReplacementNamed(
-        context,
-        FirebaseAuth.instance.currentUser == null
-            ? LoginPage.routeName
-            : MainPage.routeName,
-      ),
-    );
+        Duration(seconds: 5),
+        () => Navigator.pushNamedAndRemoveUntil(
+              context,
+              routeName(),
+              (route) => false,
+            ));
   }
 }

@@ -5,9 +5,11 @@ import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:unibike/api/api_service.dart';
 import 'package:unibike/common/styles.dart';
 import 'package:unibike/model/bike_model2.dart';
+import 'package:unibike/widgets/appbar.dart';
 import 'package:unibike/widgets/bottom_sheet.dart';
 import 'package:unibike/widgets/card_sepeda.dart';
 
@@ -125,17 +127,19 @@ class _ListBikePageState extends State<ListBikePage> {
     });
   }
 
-  pinjamSepedaFunction() async {
+  pinjamSepedaFunction(value) async {
     setState(() {
       _isLoading = true; // your loader has started to load
     });
     dataLoadFunction();
-
     streamStatusPinjam();
     String currentUser = firebase.currentUser!.uid.toString();
     users.doc(currentUser).update(
       {'status': 1},
     );
+    final prefs = await SharedPreferences.getInstance();
+    print("value prefs ${value}");
+    prefs.setInt('countdownTimer', value.millisecondsSinceEpoch);
     setState(() {
       widget.statusPinjam = 1;
       _isLoading = false; // your loder will stop to finish after the data fetch
@@ -172,6 +176,7 @@ class _ListBikePageState extends State<ListBikePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: whiteBackground,
+      appBar: CustomAppBar(text: 'Shelter Fakultas ${widget.fakultas}'),
       body: RefreshIndicator(
         child: SafeArea(
           child: SingleChildScrollView(
@@ -211,131 +216,107 @@ class _ListBikePageState extends State<ListBikePage> {
   }
 
   Widget _content(BuildContext context, int gridCount) {
-    double widthText = MediaQuery.of(context).size.width - 120;
     var size = MediaQuery.of(context).size;
     final double itemHeight = (size.height - kToolbarHeight - 24) / 3;
     final double itemWidth = size.width / 2;
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      mainAxisSize: MainAxisSize.min,
-      children: <Widget>[
-        Row(
-          children: [
-            Container(
-              margin: const EdgeInsets.only(right: 15),
-              child: CircleAvatar(
-                backgroundColor: mediumBlue,
-                child: IconButton(
-                  icon: Icon(Icons.arrow_back, color: primaryColor),
-                  onPressed: () {
-                    Navigator.pop(context);
-                  },
-                ),
-              ),
-            ),
-            SizedBox(
-                width: widthText,
-                child: Text(
-                  "Shelter Fakultas ${widget.fakultas}",
-                  style: Theme.of(context).textTheme.headline5,
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                ))
-          ],
-        ),
-        SizedBox(height: 2),
-        Divider(color: underline),
-        SizedBox(height: 5),
-        _isLoading
-            ? Center(
-                child: CircularProgressIndicator(),
-              )
-            : FutureBuilder<List<ListSepeda>>(
-                future: dataSepeda,
-                builder: (context, snapshot) {
-                  if (snapshot.hasError) {
-                    return Center(
-                      child: Column(
-                        children: <Widget>[
-                          Image.asset(
-                            'assets/logoBulet.png',
-                            width: 250,
-                            height: 250,
-                          ),
-                          Text("Terjadi error, silahkan refresh halaman.",
-                              style: Theme.of(context).textTheme.headline5)
-                        ],
+    return _isLoading
+        ? Center(
+            child: CircularProgressIndicator(),
+          )
+        : FutureBuilder<List<ListSepeda>>(
+            future: dataSepeda,
+            builder: (context, snapshot) {
+              if (snapshot.hasError) {
+                return Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: <Widget>[
+                      Image.asset(
+                        'assets/errorstate.png',
+                        width: 250,
+                        height: 250,
                       ),
-                    );
-                  } else if (snapshot.connectionState == ConnectionState.none &&
-                      _connectionStatus == ConnectivityResult.none) {
-                    return Center(
+                      Text("Terjadi error, silahkan muat ulang halaman.",
+                          style: Theme.of(context).textTheme.headline5)
+                    ],
+                  ),
+                );
+              } else if (snapshot.connectionState == ConnectionState.none &&
+                  _connectionStatus == ConnectivityResult.none) {
+                return Center(
+                    child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: <Widget>[
+                    Image.asset(
+                      'assets/errorstate.png',
+                      width: 250,
+                      height: 250,
+                    ),
+                    Text('Tidak ada koneksi, silahkan muat ulang halaman.',
+                        style: TextStyle(color: Colors.black))
+                  ],
+                ));
+              } else if (snapshot.hasData &&
+                  snapshot.connectionState == ConnectionState.done) {
+                var filteredList = snapshot.data!.where(((bike) {
+                  return bike.fields.fakultas.value == widget.fakultasDb;
+                })).toList();
+                return filteredList.length == 0
+                    ? Center(
                         child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: <Widget>[
-                        CircleAvatar(
-                          child: Icon(Icons.wifi_off, color: primaryColor),
-                          backgroundColor: secondaryColor,
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          children: <Widget>[
+                            Image.asset(
+                              'assets/emptystate_bike.png',
+                              width: 250,
+                              height: 250,
+                            ),
+                            Text(
+                              "Tidak ada sepeda yang tersedia di shelter ini",
+                              style: Theme.of(context).textTheme.headline5,
+                              textAlign: TextAlign.center,
+                            )
+                          ],
                         ),
-                        Text('Tidak ada koneksi',
-                            style: TextStyle(color: Colors.black))
-                      ],
-                    ));
-                  } else if (snapshot.hasData &&
-                      snapshot.connectionState == ConnectionState.done) {
-                    var filteredList = snapshot.data!.where(((bike) {
-                      return bike.fields.fakultas.value == widget.fakultasDb;
-                    })).toList();
-                    return filteredList.length == 0
-                        ? Center(
-                            child: Column(
-                              children: <Widget>[
-                                Image.asset(
-                                  'assets/logoBulet.png',
-                                  width: 250,
-                                  height: 250,
-                                ),
-                                Text(
-                                    "Tidak ada sepeda yang tersedia di shelter ini",
-                                    style:
-                                        Theme.of(context).textTheme.headline5)
-                              ],
-                            ),
-                          )
-                        : GridView.count(
-                            physics: ScrollPhysics(),
-                            crossAxisCount: gridCount,
-                            childAspectRatio: (itemWidth / itemHeight),
-                            shrinkWrap: true,
-                            children: List.generate(
-                              filteredList.length,
-                              (index) {
-                                return CardSepeda(
-                                  bike: filteredList[index],
-                                  fakultas: widget.fakultas,
-                                  onDebt: isOnDebt,
-                                  statusPinjam: widget.statusPinjam,
-                                  onPressedPinjam: ((bool isPressed) {
-                                    isPressed ? pinjamSepedaFunction() : null;
-                                  }),
-                                );
-                              },
-                            ),
-                          );
-                  }
-                  return Center(
-                    child: CircularProgressIndicator(),
-                  );
-                }),
-      ],
-    );
+                      )
+                    : GridView.count(
+                        physics: ScrollPhysics(),
+                        crossAxisCount: gridCount,
+                        childAspectRatio: (itemWidth / itemHeight),
+                        shrinkWrap: true,
+                        padding: EdgeInsets.only(
+                            bottom: widget.statusPinjam != 0 ? 70 : 0),
+                        children: List.generate(
+                          filteredList.length,
+                          (index) {
+                            return CardSepeda(
+                              bike: filteredList[index],
+                              fakultas: widget.fakultas,
+                              onDebt: isOnDebt,
+                              statusPinjam: widget.statusPinjam,
+                              onPressedPinjam:
+                                  ((bool isPressed, DateTime today) {
+                                isPressed ? pinjamSepedaFunction(today) : null;
+                              }),
+                            );
+                          },
+                        ),
+                      );
+              }
+              return Center(
+                child: CircularProgressIndicator(),
+              );
+            });
   }
 
   Future<void> onRefresh() async {
     setState(() {
       _isLoading = true;
     });
-    print("isrefreshing");
+
     await dataLoadFunction();
     setState(() {
       _isLoading = false;

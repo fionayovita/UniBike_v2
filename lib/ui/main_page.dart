@@ -3,14 +3,14 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:provider/provider.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:unibike/api/api_service.dart';
 import 'package:unibike/common/styles.dart';
 import 'package:unibike/model/bike_model2.dart';
-import 'package:unibike/provider/bike_provider.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:unibike/ui/list_bike_page.dart';
 import 'package:unibike/ui/profile_page.dart';
+import 'package:unibike/ui/status_pinjam_page.dart';
 import 'package:unibike/widgets/bottom_sheet.dart';
 
 class MainPage extends StatefulWidget {
@@ -88,9 +88,6 @@ class _MainPageState extends State<MainPage> {
     setState(() {
       _connectionStatus = result;
     });
-    // if (_connectionStatus != ConnectivityResult.none) {
-    //   dataLoadFunction();
-    // }
   }
 
   dataLoadFunction() async {
@@ -118,16 +115,7 @@ class _MainPageState extends State<MainPage> {
             favFakultas = data['favorite'];
             statusPinjam = data['status'];
             isOnDebt = data.containsKey('denda_pinjam');
-            var peminjamanTerakhir = data['peminjaman_terakhir'].toDate();
-            int calculateDifference() {
-              DateTime now = DateTime.now();
-              return data['peminjaman_terakhir']
-                  .toDate()
-                  .difference(now)
-                  .inHours;
-            }
-
-            bool isDebtDone = calculateDifference() >= 24;
+            var nama = data['nama'].split(" ") ?? 'bikers';
             return Scaffold(
                 backgroundColor: whiteBackground,
                 appBar: AppBar(
@@ -148,7 +136,7 @@ class _MainPageState extends State<MainPage> {
                         ),
                         SizedBox(width: 5),
                         Text(
-                          "Hi, bikers!",
+                          "Halo, ${nama[0]}!",
                           style: Theme.of(context).textTheme.subtitle1,
                         ),
                       ],
@@ -166,7 +154,8 @@ class _MainPageState extends State<MainPage> {
                       padding: EdgeInsets.only(right: 15),
                       child: GestureDetector(
                         onTap: () {
-                          Navigator.pushNamed(context, ProfilePage.routeName);
+                          Navigator.pushNamed(
+                              context, StatusPinjamPage.routeName);
                         },
                         child: Icon(
                           Icons.account_circle,
@@ -177,35 +166,36 @@ class _MainPageState extends State<MainPage> {
                   ],
                 ),
                 body: RefreshIndicator(
-                    child: SingleChildScrollView(
-                      physics: const AlwaysScrollableScrollPhysics(),
-                      child: SafeArea(
-                        child: LayoutBuilder(
-                          builder: (BuildContext context,
-                              BoxConstraints constraints) {
-                            if (constraints.maxWidth <= 700) {
-                              return Padding(
-                                  padding: const EdgeInsets.symmetric(
-                                      horizontal: 17.0, vertical: 20.0),
-                                  child: _content(context));
-                            } else if (constraints.maxWidth <= 1100) {
-                              return Padding(
-                                  padding: const EdgeInsets.symmetric(
-                                      horizontal: 80.0, vertical: 20.0),
-                                  child: _content(context));
-                            } else {
-                              return Padding(
-                                  padding: const EdgeInsets.symmetric(
-                                      horizontal: 550.0, vertical: 20.0),
-                                  child: _content(context));
-                            }
-                          },
-                        ),
+                  onRefresh: () async {
+                    onRefresh();
+                  },
+                  child: SingleChildScrollView(
+                    physics: const AlwaysScrollableScrollPhysics(),
+                    child: SafeArea(
+                      child: LayoutBuilder(
+                        builder:
+                            (BuildContext context, BoxConstraints constraints) {
+                          if (constraints.maxWidth <= 700) {
+                            return Padding(
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 17.0, vertical: 20.0),
+                                child: _content(context));
+                          } else if (constraints.maxWidth <= 1100) {
+                            return Padding(
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 80.0, vertical: 20.0),
+                                child: _content(context));
+                          } else {
+                            return Padding(
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 550.0, vertical: 20.0),
+                                child: _content(context));
+                          }
+                        },
                       ),
                     ),
-                    onRefresh: () async {
-                      onRefresh();
-                    }),
+                  ),
+                ),
                 bottomSheet: (statusPinjam != 0)
                     ? BottomSheetWidget(onPressedPinjam: ((bool isPressed) {
                         isPressed ? dataLoadFunction() : null;
@@ -226,14 +216,19 @@ class _MainPageState extends State<MainPage> {
             return Center(
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.center,
                 children: <Widget>[
                   Image.asset(
-                    'assets/logoBulet.png',
+                    'assets/errorstate.png',
                     width: 250,
                     height: 250,
                   ),
-                  Text("Terjadi error. Silahkan cek koneksi anda.",
-                      style: Theme.of(context).textTheme.headline5)
+                  Text(
+                    "Terjadi error. Silahkan muat ulang halaman.",
+                    style: Theme.of(context).textTheme.headline5,
+                    textAlign: TextAlign.center,
+                  ),
+                  SizedBox(height: 20),
                 ],
               ),
             );
@@ -242,19 +237,27 @@ class _MainPageState extends State<MainPage> {
             return Center(
                 child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.center,
               children: <Widget>[
-                CircleAvatar(
-                  child: Icon(Icons.wifi_off, color: primaryColor),
-                  backgroundColor: secondaryColor,
+                Image.asset(
+                  'assets/errorstate.png',
+                  width: 250,
+                  height: 250,
                 ),
-                Text('Tidak ada koneksi', style: TextStyle(color: Colors.black))
+                Text(
+                  "Tidak ada koneksi. Silahkan muat ulang halaman.",
+                  style: Theme.of(context).textTheme.headline5,
+                  textAlign: TextAlign.center,
+                ),
               ],
             ));
           } else if (snapshot.hasData &&
               snapshot.connectionState == ConnectionState.done) {
             return SingleChildScrollView(
               child: Container(
-                height: (statusPinjam != 0) ? 640 : 800,
+                height: (statusPinjam != 0)
+                    ? 640
+                    : (MediaQuery.of(context).size.height * 0.8),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   mainAxisSize: MainAxisSize.min,
@@ -348,6 +351,7 @@ class _MainPageState extends State<MainPage> {
                     Expanded(
                         child: ListView.builder(
                       shrinkWrap: true,
+                      physics: ScrollPhysics(),
                       itemCount: _listFakultas.length,
                       itemBuilder: (context, index) {
                         var sepeda = snapshot.data!;
@@ -445,7 +449,6 @@ class _MainPageState extends State<MainPage> {
     setState(() {
       _isLoading = true;
     });
-    print("isrefreshing");
     await dataLoadFunction();
     setState(() {
       _isLoading = false;

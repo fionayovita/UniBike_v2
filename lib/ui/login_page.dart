@@ -180,7 +180,14 @@ class _LoginPageState extends State<LoginPage> {
                       await _auth.signInWithEmailAndPassword(
                           email: email, password: password);
 
-                      Navigator.pushNamed(context, MainPage.routeName);
+                      Navigator.pushNamedAndRemoveUntil(
+                        context,
+                        MainPage.routeName,
+                        (route) => false,
+                      );
+
+                      // Navigator.pushReplacementNamed(
+                      //     context, MainPage.routeName);
                     } catch (e) {
                       final snackbar = SnackBar(
                         content: Text(e.toString()),
