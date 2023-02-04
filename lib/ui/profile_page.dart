@@ -7,6 +7,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:unibike/common/styles.dart';
 import 'package:unibike/ui/login_page.dart';
 import 'package:unibike/widgets/appbar.dart';
+import 'package:unibike/widgets/custom_dialog.dart';
 
 class ProfilePage extends StatefulWidget {
   static const routeName = 'profile_page';
@@ -22,11 +23,12 @@ class _ProfilePageState extends State<ProfilePage> {
   FirebaseStorage storage = FirebaseStorage.instance;
   var _image;
   final ImagePicker _picker = ImagePicker();
+  bool isTimeout = false;
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      // appBar: CustomAppBar(text: "Profile"),
+      appBar: CustomAppBar(text: "Profile"),
       body: SafeArea(
         child: SingleChildScrollView(
           child: LayoutBuilder(
@@ -56,24 +58,70 @@ class _ProfilePageState extends State<ProfilePage> {
 
   Widget _profilePage(BuildContext context) {
     String text = 'nama';
-    String currentUser = firebase.currentUser!.uid.toString();
     var width = MediaQuery.of(context).size.width;
 
     return FutureBuilder<DocumentSnapshot>(
-      future: users.doc('$currentUser').get(),
+      future: users.doc('${firebase.currentUser!.uid.toString()}').get(),
       builder: (BuildContext context, snapshot) {
         if (snapshot.hasError) {
-          return Text("Something went wrong");
+          return Center(
+              child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: <Widget>[
+              Image.asset(
+                'assets/errorstate.png',
+                width: 250,
+                height: 250,
+              ),
+              Text(
+                "Terjadi error. Silahkan muat ulang halaman.",
+                style: Theme.of(context).textTheme.headline5,
+                textAlign: TextAlign.center,
+              ),
+            ],
+          ));
         }
 
         if (snapshot.hasData && !snapshot.data!.exists) {
-          return Text("Document does not exist");
-        }
-
-        if (snapshot.connectionState == ConnectionState.waiting) {
+          return Center(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(vertical: 30),
+              child: Column(
+                children: <Widget>[
+                  Image.asset(
+                    'assets/emptystate.png',
+                    width: 250,
+                    height: 250,
+                  ),
+                  SizedBox(height: 15.0),
+                  Text('Anda belum meminjam sepeda',
+                      style: Theme.of(context).textTheme.headline5)
+                ],
+              ),
+            ),
+          );
+        } else if (snapshot.connectionState == ConnectionState.none) {
+          return Center(
+              child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: <Widget>[
+              Image.asset(
+                'assets/errorstate.png',
+                width: 250,
+                height: 250,
+              ),
+              Text(
+                "Tidak ada koneksi. Silahkan muat ulang halaman.",
+                style: Theme.of(context).textTheme.headline5,
+                textAlign: TextAlign.center,
+              ),
+            ],
+          ));
+        } else if (snapshot.connectionState == ConnectionState.waiting) {
           return Center(child: CircularProgressIndicator());
-        }
-        if (snapshot.connectionState == ConnectionState.done) {
+        } else if (snapshot.connectionState == ConnectionState.done) {
           Map<String, dynamic> data =
               snapshot.data!.data() as Map<String, dynamic>;
           var nama = data['nama'];
@@ -89,7 +137,9 @@ class _ProfilePageState extends State<ProfilePage> {
                 child: Stack(
                   children: <Widget>[
                     FutureBuilder<String>(
-                      future: loadImage(),
+                      future: loadImage()!.timeout(
+                        const Duration(seconds: 60),
+                      ),
                       builder:
                           (BuildContext context, AsyncSnapshot<String> image) {
                         if (image.connectionState == ConnectionState.waiting) {
@@ -100,14 +150,15 @@ class _ProfilePageState extends State<ProfilePage> {
                               size: 200,
                             ),
                           );
-                        }
-                        if (image.hasError) {
+                        } else if (image.hasError) {
                           return Center(
-                              child: Text('Failed to load picture',
-                                  style:
-                                      Theme.of(context).textTheme.subtitle1));
-                        }
-                        if (image.hasData) {
+                            child: Icon(
+                              Icons.person,
+                              color: primaryColor,
+                              size: 200,
+                            ),
+                          );
+                        } else if (image.hasData) {
                           return Image.network(
                             image.data.toString(),
                             fit: BoxFit.cover,
@@ -115,54 +166,34 @@ class _ProfilePageState extends State<ProfilePage> {
                             height: width,
                           );
                         } else {
-                          return Text('No Picture',
-                              style: Theme.of(context)
-                                  .textTheme
-                                  .subtitle1); // placeholder
+                          return Center(
+                            child: Icon(
+                              Icons.person,
+                              color: primaryColor,
+                              size: 200,
+                            ),
+                          ); // placeholder
                         }
                       },
                     ),
-                    Positioned(
-                      top: 10.0,
-                      left: 10.0,
-                      child: InkWell(
-                        onTap: () {
-                          showModalBottomSheet(
-                            context: context,
-                            builder: ((builder) => popUpOption()),
-                          );
-                        },
-                        child: Container(
-                          margin: const EdgeInsets.only(right: 15),
-                          child: CircleAvatar(
-                            backgroundColor: mediumBlue,
-                            child: IconButton(
-                              icon: Icon(Icons.arrow_back, color: primaryColor),
-                              onPressed: () {
-                                Navigator.pop(context);
-                              },
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
-                    Positioned(
-                      bottom: 20.0,
-                      right: 20.0,
-                      child: InkWell(
-                        onTap: () {
-                          showModalBottomSheet(
-                            context: context,
-                            builder: ((builder) => popUpOption()),
-                          );
-                        },
-                        child: Icon(
-                          Icons.camera_alt,
-                          color: primaryColor,
-                          size: 28.0,
-                        ),
-                      ),
-                    )
+
+                    // Positioned(
+                    //   bottom: 20.0,
+                    //   right: 20.0,
+                    //   child: InkWell(
+                    //     onTap: () {
+                    //       showModalBottomSheet(
+                    //         context: context,
+                    //         builder: ((builder) => popUpOption()),
+                    //       );
+                    //     },
+                    //     child: Icon(
+                    //       Icons.camera_alt,
+                    //       color: primaryColor,
+                    //       size: 28.0,
+                    //     ),
+                    //   ),
+                    // )
                   ],
                 ),
               ),
@@ -247,12 +278,29 @@ class _ProfilePageState extends State<ProfilePage> {
                   borderRadius: BorderRadius.circular(10),
                 ),
                 onPressed: () async {
-                  await firebase.signOut();
-                  Navigator.pushNamedAndRemoveUntil(
-                    context,
-                    LoginPage.routeName,
-                    (route) => false,
-                  );
+                  try {
+                    await firebase
+                        .signOut()
+                        .whenComplete(() => Navigator.pushNamedAndRemoveUntil(
+                              context,
+                              LoginPage.routeName,
+                              (route) => false,
+                            ));
+                  } on FirebaseAuthException catch (e) {
+                    print('Failed with error code: ${e.code}');
+                    print("Failed message : ${e.message}");
+                    return showDialog(
+                      context: context,
+                      builder: (BuildContext context) {
+                        return CustomDialog(
+                          title: 'Log Out Gagal',
+                          descriptions:
+                              'Error: ${e.message}. Silahkan coba lagi beberapa saat kemudian!',
+                          text: 'OK',
+                        );
+                      },
+                    );
+                  }
                 },
               ),
             ],
@@ -328,7 +376,6 @@ class _ProfilePageState extends State<ProfilePage> {
 
   Future<String>? loadImage() async {
     String currentUser = firebase.currentUser!.uid.toString();
-    print('current user: $currentUser');
     var url = null ??
         'https://firebasestorage.googleapis.com/v0/b/unibike-13780.appspot.com/o/profile_picture%2Favatar.png?alt=media&token=ee107873-773f-4683-b2f7-572c16e1a494';
     try {
@@ -338,7 +385,6 @@ class _ProfilePageState extends State<ProfilePage> {
           .child('$currentUser');
 
       url = await ref.getDownloadURL();
-      print('url foto profile: $url');
     } on FirebaseException catch (e) {
       Text('error loading picture');
       print(e);

@@ -209,7 +209,8 @@ class _RegisterPageState extends State<RegisterPage> {
                   'nama': nama,
                   'npm': npm,
                   'prodi': prodi,
-                  'fakultas': fakultas
+                  'fakultas': fakultas,
+                  'sisa_jam': "4:00:00"
                 });
                 Navigator.pop(context);
               } catch (e) {

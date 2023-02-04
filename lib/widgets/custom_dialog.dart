@@ -84,13 +84,13 @@ class _CustomDialogState extends State<CustomDialog> {
           child: CircleAvatar(
             backgroundColor: secondaryColor,
             radius: 50.0,
-            child: widget.title == 'Sukses Pinjam Sepeda!'
+            child: widget.title.contains('Sukses')
                 ? Icon(
                     Icons.file_download_done_rounded,
                     color: primaryColor,
                     size: 70,
                   )
-                : widget.title == "Peminjaman Gagal"
+                : widget.title.contains("Gagal")
                     ? Icon(
                         Icons.close,
                         color: primaryColor,

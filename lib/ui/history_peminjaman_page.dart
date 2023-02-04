@@ -1,6 +1,8 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
+import 'package:unibike/widgets/appbar.dart';
 import 'package:unibike/widgets/card_history.dart';
 
 class HistoryPeminjamanPage extends StatelessWidget {
@@ -13,18 +15,7 @@ class HistoryPeminjamanPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        automaticallyImplyLeading: false,
-        title: Text('Riwayat Peminjaman',
-            style: Theme.of(context).textTheme.headline5),
-        toolbarHeight: 70,
-        bottom: PreferredSize(
-            child: Container(
-              color: Colors.black12,
-              height: 0.3,
-            ),
-            preferredSize: Size.fromHeight(4.0)),
-      ),
+      appBar: CustomAppBar(text: "Riwayat Peminjaman"),
       body: SafeArea(
         child: Center(
           child: LayoutBuilder(
@@ -108,12 +99,16 @@ class HistoryPeminjamanPage extends StatelessWidget {
                     final fakultas = data['fakultas'];
                     final waktuPinjam = data['waktu_pinjam'];
                     final waktuKembali = data['waktu_kembali'];
+                    var dateFormatPinjam = DateFormat('dd/MM/yyyy HH:mm')
+                        .format(waktuPinjam.toDate());
+                    var dateFormatKembali = DateFormat('dd/MM/yyyy HH:mm')
+                        .format(waktuKembali.toDate());
 
                     return CardHistory(
                         jenisSepeda: jenisSepeda,
                         fakultas: fakultas,
-                        waktuPinjam: waktuPinjam,
-                        waktuKembali: waktuKembali);
+                        waktuPinjam: dateFormatPinjam.toString(),
+                        waktuKembali: dateFormatKembali.toString());
                   },
                 )
               : SingleChildScrollView(

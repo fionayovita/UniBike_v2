@@ -89,7 +89,6 @@ class _ListBikePageState extends State<ListBikePage> {
           dataLoadFunction();
           streamStatusPinjam();
         } else {
-          print("ga ada koneksi");
           setState(() {
             _isLoading = false;
           });
@@ -112,9 +111,6 @@ class _ListBikePageState extends State<ListBikePage> {
     setState(() {
       _connectionStatus = result;
     });
-    // if (_connectionStatus != ConnectivityResult.none) {
-    //   dataLoadFunction();
-    // }
   }
 
   dataLoadFunction() async {
@@ -138,8 +134,8 @@ class _ListBikePageState extends State<ListBikePage> {
       {'status': 1},
     );
     final prefs = await SharedPreferences.getInstance();
-    print("value prefs ${value}");
     prefs.setInt('countdownTimer', value.millisecondsSinceEpoch);
+    prefs.setString('sisa_jam', dataUser['sisa_jam']);
     setState(() {
       widget.statusPinjam = 1;
       _isLoading = false; // your loder will stop to finish after the data fetch
@@ -162,6 +158,7 @@ class _ListBikePageState extends State<ListBikePage> {
             isOnDebt = data_user.containsKey('denda_pinjam');
             widget.statusPinjam = data['status'];
           });
+          print("datauser ada gasih ${dataUser}");
         }
       });
       setState(() {
@@ -242,8 +239,7 @@ class _ListBikePageState extends State<ListBikePage> {
                     ],
                   ),
                 );
-              } else if (snapshot.connectionState == ConnectionState.none &&
-                  _connectionStatus == ConnectivityResult.none) {
+              } else if (snapshot.connectionState == ConnectionState.none) {
                 return Center(
                     child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
@@ -254,8 +250,11 @@ class _ListBikePageState extends State<ListBikePage> {
                       width: 250,
                       height: 250,
                     ),
-                    Text('Tidak ada koneksi, silahkan muat ulang halaman.',
-                        style: TextStyle(color: Colors.black))
+                    Text(
+                      'Tidak ada koneksi, silahkan muat ulang halaman.',
+                      style: Theme.of(context).textTheme.headline5,
+                      textAlign: TextAlign.center,
+                    )
                   ],
                 ));
               } else if (snapshot.hasData &&
@@ -263,6 +262,17 @@ class _ListBikePageState extends State<ListBikePage> {
                 var filteredList = snapshot.data!.where(((bike) {
                   return bike.fields.fakultas.value == widget.fakultasDb;
                 })).toList();
+                var sortTersedia = filteredList.where(((bike) {
+                  return bike.fields.status.value == "Tersedia" ||
+                      bike.fields.status.value == "tersedia";
+                })).toList();
+                var sortTidakTersedia = filteredList.where(((bike) {
+                  return bike.fields.status.value == "Tidak Tersedia" ||
+                      bike.fields.status.value == "tidak tersedia" ||
+                      bike.fields.status.value == "Tidak tersedia";
+                })).toList();
+                var newList = sortTersedia + sortTidakTersedia;
+
                 return filteredList.length == 0
                     ? Center(
                         child: Column(
@@ -290,13 +300,14 @@ class _ListBikePageState extends State<ListBikePage> {
                         padding: EdgeInsets.only(
                             bottom: widget.statusPinjam != 0 ? 70 : 0),
                         children: List.generate(
-                          filteredList.length,
+                          newList.length,
                           (index) {
                             return CardSepeda(
-                              bike: filteredList[index],
+                              bike: newList[index],
                               fakultas: widget.fakultas,
                               onDebt: isOnDebt,
                               statusPinjam: widget.statusPinjam,
+                              sisaJam: dataUser['sisa_jam'],
                               onPressedPinjam:
                                   ((bool isPressed, DateTime today) {
                                 isPressed ? pinjamSepedaFunction(today) : null;
@@ -318,6 +329,7 @@ class _ListBikePageState extends State<ListBikePage> {
     });
 
     await dataLoadFunction();
+    await streamStatusPinjam();
     setState(() {
       _isLoading = false;
     });

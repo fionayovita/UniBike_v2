@@ -1,13 +1,14 @@
 import 'dart:async';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:unibike/common/styles.dart';
-import 'package:unibike/model/bike_model2.dart';
-import 'package:unibike/preferences/preferences_helper.dart';
 import 'package:unibike/ui/status_pinjam_page.dart';
+import 'package:unibike/widgets/custom_dialog.dart';
 
 class BottomSheetWidget extends StatefulWidget {
   String fakultasState = '';
@@ -28,6 +29,8 @@ class _BottomSheetState extends State<BottomSheetWidget> {
       FirebaseFirestore.instance.collection('data_peminjaman');
   final CollectionReference users =
       FirebaseFirestore.instance.collection('users');
+  //   final CollectionReference history =
+  // FirebaseFirestore.instance.collection('users');
 
   String? fakultas;
   List _listFakultas = [
@@ -44,11 +47,43 @@ class _BottomSheetState extends State<BottomSheetWidget> {
   List _fakultasDb = ["ft", "fmipa", "feb", "fk", "fp", "fkip", "fisip", "fh"];
   Timer? countdownTimer;
   var myDuration = Duration(seconds: 0);
+  var sisaJamUpdated;
+
+  ConnectivityResult _connectionStatus = ConnectivityResult.none;
+  final Connectivity _connectivity = Connectivity();
+  late StreamSubscription<ConnectivityResult> _connectivitySubscription;
 
   @override
   void initState() {
     super.initState();
     checkIfDocExists();
+    initConnectivity();
+    _connectivitySubscription =
+        _connectivity.onConnectivityChanged.listen(_updateConnectionStatus);
+  }
+
+  Future<void> initConnectivity() async {
+    late ConnectivityResult result;
+    try {
+      result = await _connectivity.checkConnectivity();
+      if (result != ConnectivityResult.none) {
+        // dataLoadFunction();
+      }
+    } on PlatformException catch (e) {
+      print('Couldn\'t check connectivity status ${e}');
+      return;
+    }
+    if (!mounted) {
+      return Future.value(null);
+    }
+
+    return _updateConnectionStatus(result);
+  }
+
+  Future<void> _updateConnectionStatus(ConnectivityResult result) async {
+    setState(() {
+      _connectionStatus = result;
+    });
   }
 
   Future<int?> get getCountdownValue async {
@@ -71,17 +106,32 @@ class _BottomSheetState extends State<BottomSheetWidget> {
             var currentTime = DateTime.now();
             var timestamp = prefs.getInt('countdownTimer');
             DateTime dateTime = DateTime.fromMillisecondsSinceEpoch(timestamp!);
+
+            var sisaJamSplit = prefs.getString('sisa_jam')?.split(':');
+            var sisaJamInDate = new DateTime(
+                currentTime.year,
+                currentTime.month,
+                currentTime.day,
+                int.parse(sisaJamSplit![0]),
+                int.parse(sisaJamSplit[1]),
+                0);
             Duration timeDifference = currentTime.difference(dateTime);
-            print(
-                'is countdown timer has been a minute? ${currentTime} ${timestamp} datetime ${dateTime} ${timeDifference.inSeconds} ${timeDifference.inSeconds >= 14400}');
+            var formattedTime = new DateTime(
+                currentTime.year, currentTime.month, currentTime.day, 0, 0, 0);
+            Duration sisajam = sisaJamInDate.difference(formattedTime);
+
             setState(() {
               dataSnapshot = data;
               myDuration = Duration(
                   seconds: timeDifference.inSeconds >= 5
                       ? timeDifference.inSeconds >= 14400
                           ? 0
-                          : 14400 - timeDifference.inSeconds
-                      : 14400);
+                          : sisaJamSplit[0] != '4'
+                              ? sisajam.inSeconds - timeDifference.inSeconds
+                              : 14400 - timeDifference.inSeconds
+                      : sisaJamSplit[0] != '4'
+                          ? sisajam.inSeconds
+                          : 14400);
             });
 
             startTimer();
@@ -195,7 +245,6 @@ class _BottomSheetState extends State<BottomSheetWidget> {
                               padding: EdgeInsets.symmetric(
                                   horizontal: 20, vertical: 10),
                               child: Container(
-                                // width: MediaQuery.of(context).size.width - 250,
                                 padding: EdgeInsets.symmetric(
                                     horizontal: 17, vertical: 5),
                                 decoration: BoxDecoration(
@@ -233,18 +282,15 @@ class _BottomSheetState extends State<BottomSheetWidget> {
                                         },
                                       ).toList(),
                                       onChanged: (String? value) {
-                                        print(
-                                            "fakultas ${fakultas} value $value");
                                         setState(
                                           () {
-                                            fakultas = value as String ?? "";
+                                            fakultas = value as String;
                                             var idx =
                                                 _listFakultas.indexOf(value);
                                             widget.fakultasState =
                                                 _fakultasDb[idx];
                                           },
                                         );
-                                        print("fakultass ${fakultas}");
                                       },
                                     ),
                                   ),
@@ -271,57 +317,84 @@ class _BottomSheetState extends State<BottomSheetWidget> {
                                         .toString()
                                         .replaceAll(RegExp('-'), '');
 
-                                    DateTime sisaJam = DateTime(
-                                        waktuKembali.year,
-                                        waktuKembali.month,
-                                        batasWaktu.day,
-                                        selisihJam.inHours % 24,
-                                        selisihJam.inMinutes % 60);
+                                    if (_connectionStatus !=
+                                        ConnectivityResult.none) {
+                                      dataPeminjaman
+                                          .doc(firebase.currentUser?.uid)
+                                          .delete()
+                                          .then((value) {
+                                        setState(() {
+                                          widget.statusPinjam = false;
+                                        });
+                                      }).catchError((error) => print(
+                                              "Failed to return bike: $error"));
 
-                                    dataPeminjaman
-                                        .doc(firebase.currentUser?.uid)
-                                        .delete()
-                                        .then((value) {
-                                      setState(() {
-                                        widget.statusPinjam = false;
-                                      });
-                                    }).catchError((error) => print(
-                                            "Failed to return bike: $error"));
-
-                                    firestore
-                                        .collection('data_sepeda')
-                                        .doc('${dataSnapshot['id_sepeda']}')
-                                        .update(
-                                      {
-                                        'status': 'Tersedia',
-                                        'fakultas': widget.fakultasState
-                                      },
-                                    );
-                                    if (selisihJam.isNegative) {
-                                      users.doc(currentUser).update(
+                                      firestore
+                                          .collection('data_sepeda')
+                                          .doc('${dataSnapshot['id_sepeda']}')
+                                          .update(
                                         {
-                                          'status': 0,
-                                          'sisa_jam': '0:00:00',
-                                          'peminjaman_terakhir': waktuKembali,
-                                          'denda_pinjam': selisihJamNegatif
+                                          'status': 'Tersedia',
+                                          'fakultas': widget.fakultasState
                                         },
                                       );
-                                    } else {
-                                      users.doc(currentUser).update(
+
+                                      firestore
+                                          .collection('history_peminjaman')
+                                          .doc(firebase.currentUser?.uid)
+                                          .collection('user_history')
+                                          .doc()
+                                          .set(
                                         {
-                                          'status': 0,
-                                          'sisa_jam': selisihJam.toString(),
-                                          'peminjaman_terakhir': waktuKembali
+                                          'id_sepeda':
+                                              dataSnapshot['id_sepeda'],
+                                          'jenis_sepeda':
+                                              dataSnapshot['jenis_sepeda'],
+                                          'email_peminjam':
+                                              dataSnapshot['email_peminjam'],
+                                          'waktu_pinjam':
+                                              dataSnapshot['waktu_pinjam'],
+                                          'waktu_kembali': waktuKembali,
+                                          'fakultas': dataSnapshot['fakultas']
+                                        },
+                                      );
+                                      if (selisihJam.isNegative) {
+                                        users.doc(currentUser).update(
+                                          {
+                                            'status': 0,
+                                            'sisa_jam': '0:00:00',
+                                            'peminjaman_terakhir': waktuKembali,
+                                            'denda_pinjam': selisihJamNegatif
+                                          },
+                                        );
+                                      } else {
+                                        users.doc(currentUser).update(
+                                          {
+                                            'status': 0,
+                                            'sisa_jam': selisihJam.toString(),
+                                            'peminjaman_terakhir': waktuKembali
+                                          },
+                                        );
+                                      }
+                                      setState(() {
+                                        widget.statusPinjam = false;
+                                        widget.onPressedPinjam(true);
+                                      });
+
+                                      Navigator.of(context).pop();
+                                    } else {
+                                      return showDialog(
+                                        context: context,
+                                        builder: (BuildContext context) {
+                                          return CustomDialog(
+                                            title: 'Pengembalian Gagal',
+                                            descriptions:
+                                                'Error, silahkan coba lagi beberapa saat kemudian!',
+                                            text: 'OK',
+                                          );
                                         },
                                       );
                                     }
-                                    setState(() {
-                                      widget.statusPinjam = false;
-                                      widget.onPressedPinjam(true);
-                                    });
-                                    print('set state done');
-                                    Navigator.of(context).pop();
-                                    print('pop done');
                                   },
                                 ),
                               ),
@@ -340,7 +413,7 @@ class _BottomSheetState extends State<BottomSheetWidget> {
 
   @override
   void dispose() {
-    // _subscription.cancel();
+    _connectivitySubscription.cancel();
     super.dispose();
   }
 }

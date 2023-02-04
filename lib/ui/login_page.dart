@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:unibike/common/styles.dart';
 import 'package:unibike/ui/main_page.dart';
+import 'package:unibike/widgets/custom_dialog.dart';
 
 class LoginPage extends StatefulWidget {
   static const routeName = '/login_page';
@@ -150,7 +151,7 @@ class _LoginPageState extends State<LoginPage> {
               children: [
                 MaterialButton(
                   child: Text(
-                    'Login',
+                    'Log In',
                     style: GoogleFonts.poppins(
                       textStyle: TextStyle(
                         color: lightBlue,
@@ -192,7 +193,43 @@ class _LoginPageState extends State<LoginPage> {
                       final snackbar = SnackBar(
                         content: Text(e.toString()),
                       );
-                      ScaffoldMessenger.of(context).showSnackBar(snackbar);
+                      if (e.toString().contains('network-request-failed')) {
+                        showDialog(
+                            context: context,
+                            builder: (BuildContext context) {
+                              return CustomDialog(
+                                title: 'Login Gagal',
+                                descriptions:
+                                    'Tidak ada koneksi, mohon cek kembali koneksi anda.',
+                                text: 'OK',
+                              );
+                            });
+                      } else if (e.toString().contains('wrong-password') ||
+                          e.toString().contains('invalid-email')) {
+                        showDialog(
+                            context: context,
+                            builder: (BuildContext context) {
+                              return CustomDialog(
+                                title: 'Login Gagal',
+                                descriptions:
+                                    'Gagal melakukan proses autentikasi, mohon cek kembali email dan password anda.',
+                                text: 'OK',
+                              );
+                            });
+                      } else if (e.toString().contains('user-not-found')) {
+                        showDialog(
+                            context: context,
+                            builder: (BuildContext context) {
+                              return CustomDialog(
+                                title: 'Login Gagal',
+                                descriptions:
+                                    'Maaf kami tidak dapat menemukan akun dengan email dan password yang anda masukkan.',
+                                text: 'OK',
+                              );
+                            });
+                      } else {
+                        ScaffoldMessenger.of(context).showSnackBar(snackbar);
+                      }
                     } finally {
                       setState(() {
                         _isLoading = false;

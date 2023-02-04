@@ -1,7 +1,10 @@
+import 'dart:async';
 import 'dart:ui';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:unibike/common/styles.dart';
 import 'package:unibike/model/bike_model2.dart';
@@ -29,13 +32,15 @@ class CardSepeda extends StatefulWidget {
   int? statusPinjam;
   final Function(bool, DateTime) onPressedPinjam;
   bool onDebt;
+  String sisaJam;
 
   CardSepeda(
       {required this.bike,
       required this.fakultas,
       required this.statusPinjam,
       required this.onPressedPinjam,
-      required this.onDebt});
+      required this.onDebt,
+      required this.sisaJam});
 
   @override
   _CardSepedaState createState() => _CardSepedaState();
@@ -47,12 +52,55 @@ class _CardSepedaState extends State<CardSepeda> {
   final CollectionReference sepeda =
       FirebaseFirestore.instance.collection('data_sepeda');
 
+  ConnectivityResult _connectionStatus = ConnectivityResult.none;
+  final Connectivity _connectivity = Connectivity();
+  late StreamSubscription<ConnectivityResult> _connectivitySubscription;
+
+  @override
+  void initState() {
+    super.initState();
+    initConnectivity();
+    _connectivitySubscription =
+        _connectivity.onConnectivityChanged.listen(_updateConnectionStatus);
+  }
+
+  @override
+  void dispose() {
+    _connectivitySubscription.cancel();
+    super.dispose();
+  }
+
+  Future<void> initConnectivity() async {
+    late ConnectivityResult result;
+    try {
+      result = await _connectivity.checkConnectivity();
+      if (result != ConnectivityResult.none) {
+        // dataLoadFunction();
+      }
+    } on PlatformException catch (e) {
+      print('Couldn\'t check connectivity status ${e}');
+      return;
+    }
+    if (!mounted) {
+      return Future.value(null);
+    }
+
+    return _updateConnectionStatus(result);
+  }
+
+  Future<void> _updateConnectionStatus(ConnectivityResult result) async {
+    setState(() {
+      _connectionStatus = result;
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return _content(context);
   }
 
   Widget _content(BuildContext context) {
+    print("sisajam nya ${widget.sisaJam}");
     String emailUser = firebase.currentUser!.email.toString();
     bool isAvailable = widget.bike.fields.status.value == 'Tersedia' ||
         widget.bike.fields.status.value == 'tersedia';
@@ -115,63 +163,108 @@ class _CardSepedaState extends State<CardSepeda> {
                                       context: context,
                                       builder: (BuildContext context) {
                                         return dialogAsk(context, () {
-                                          try {
-                                            final jenisSepeda = widget
-                                                .bike.fields.jenisSepeda.value;
-                                            var today = DateTime.now();
-                                            var kembali =
-                                                today.add(Duration(hours: 4));
+                                          if (_connectionStatus !=
+                                              ConnectivityResult.none) {
+                                            try {
+                                              final jenisSepeda = widget.bike
+                                                  .fields.jenisSepeda.value;
+                                              var today = DateTime.now();
 
-                                            _store
-                                                .collection('data_peminjaman')
-                                                .doc(firebase.currentUser?.uid)
-                                                .set(
-                                              {
-                                                'id_sepeda': docId,
-                                                'jenis_sepeda': jenisSepeda,
-                                                'email_peminjam': emailUser,
-                                                'waktu_pinjam': today,
-                                                'waktu_kembali': kembali,
-                                                'fakultas': widget.fakultas
-                                              },
-                                            );
+                                              var sisaJamSplit =
+                                                  widget.sisaJam.split(':');
+                                              var sisaJamInDate = new DateTime(
+                                                  today.year,
+                                                  today.month,
+                                                  today.day,
+                                                  int.parse(sisaJamSplit[0]),
+                                                  int.parse(sisaJamSplit[1]),
+                                                  0);
 
-                                            sepeda.doc(docId).update(
-                                              {'status': 'Tidak Tersedia'},
-                                            );
+                                              var formattedTime = new DateTime(
+                                                  today.year,
+                                                  today.month,
+                                                  today.day,
+                                                  0,
+                                                  0,
+                                                  0);
 
-                                            showDialog(
-                                              context: context,
-                                              builder: (BuildContext context) {
-                                                return CustomDialog(
-                                                  title:
-                                                      'Sukses Pinjam Sepeda!',
-                                                  descriptions:
-                                                      'Silahkan cek status peminjaman di halaman Status Pinjam untuk melihat lebih detail',
-                                                  text: 'OK',
-                                                );
-                                              },
-                                            );
+                                              Duration timeDifference =
+                                                  sisaJamInDate.difference(
+                                                      formattedTime);
 
-                                            widget.onPressedPinjam(true, today);
-                                          } catch (e) {
-                                            showDialog(
+                                              var kembali = today.add(Duration(
+                                                  seconds: widget.sisaJam !=
+                                                          "4:00:00"
+                                                      ? timeDifference.inSeconds
+                                                      : 14400));
+
+                                              _store
+                                                  .collection('data_peminjaman')
+                                                  .doc(
+                                                      firebase.currentUser?.uid)
+                                                  .set(
+                                                {
+                                                  'id_sepeda': docId,
+                                                  'jenis_sepeda': jenisSepeda,
+                                                  'email_peminjam': emailUser,
+                                                  'waktu_pinjam': today,
+                                                  'waktu_kembali': kembali,
+                                                  'fakultas': widget.fakultas
+                                                },
+                                              );
+
+                                              sepeda.doc(docId).update(
+                                                {'status': 'Tidak Tersedia'},
+                                              );
+
+                                              widget.onPressedPinjam(
+                                                  true, today);
+
+                                              return showDialog(
+                                                context: context,
+                                                builder:
+                                                    (BuildContext context) {
+                                                  return CustomDialog(
+                                                    title:
+                                                        'Sukses Pinjam Sepeda!',
+                                                    descriptions:
+                                                        'Silahkan cek status peminjaman di halaman Status Pinjam untuk melihat lebih detail',
+                                                    text: 'OK',
+                                                  );
+                                                },
+                                              );
+                                            } catch (e) {
+                                              return showDialog(
+                                                context: context,
+                                                builder:
+                                                    (BuildContext context) {
+                                                  return CustomDialog(
+                                                    title: 'Peminjaman Gagal',
+                                                    descriptions:
+                                                        'Error: ${e.toString()}. Silahkan coba lagi beberapa saat kemudian!',
+                                                    text: 'OK',
+                                                  );
+                                                },
+                                              );
+                                            } finally {
+                                              setState(() {
+                                                widget.fakultas;
+                                                widget.bike;
+                                                // isAvail = false;
+                                              });
+                                            }
+                                          } else {
+                                            return showDialog(
                                               context: context,
                                               builder: (BuildContext context) {
                                                 return CustomDialog(
                                                   title: 'Peminjaman Gagal',
                                                   descriptions:
-                                                      'Error: ${e.toString()}. Silahkan coba lagi beberapa saat kemudian!',
+                                                      'Error, silahkan coba lagi beberapa saat kemudian!',
                                                   text: 'OK',
                                                 );
                                               },
                                             );
-                                          } finally {
-                                            setState(() {
-                                              widget.fakultas;
-                                              widget.bike;
-                                              // isAvail = false;
-                                            });
                                           }
                                         });
                                       })

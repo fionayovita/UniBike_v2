@@ -1,12 +1,17 @@
+import 'dart:async';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'package:unibike/common/styles.dart';
 import 'package:unibike/provider/alarm_provider.dart';
 import 'package:unibike/provider/preferences_provider.dart';
 import 'package:unibike/widgets/appbar.dart';
+import 'package:unibike/widgets/custom_dialog.dart';
 
 class StatusPinjamPage extends StatefulWidget {
   static const routeName = 'status_pinjam_page';
@@ -41,52 +46,53 @@ class _StatusPinjamPageState extends State<StatusPinjamPage> {
 
   List _fakultasDb = ["ft", "fmipa", "feb", "fk", "fp", "fkip", "fisip", "fh"];
 
+  ConnectivityResult _connectionStatus = ConnectivityResult.none;
+  final Connectivity _connectivity = Connectivity();
+  late StreamSubscription<ConnectivityResult> _connectivitySubscription;
+
+  @override
+  void initState() {
+    super.initState();
+    initConnectivity();
+    _connectivitySubscription =
+        _connectivity.onConnectivityChanged.listen(_updateConnectionStatus);
+  }
+
+  @override
+  void dispose() {
+    _connectivitySubscription.cancel();
+    super.dispose();
+  }
+
+  Future<void> initConnectivity() async {
+    late ConnectivityResult result;
+    try {
+      result = await _connectivity.checkConnectivity();
+      if (result != ConnectivityResult.none) {
+        // dataLoadFunction();
+      }
+    } on PlatformException catch (e) {
+      print('Couldn\'t check connectivity status ${e}');
+      return;
+    }
+    if (!mounted) {
+      return Future.value(null);
+    }
+
+    return _updateConnectionStatus(result);
+  }
+
+  Future<void> _updateConnectionStatus(ConnectivityResult result) async {
+    setState(() {
+      _connectionStatus = result;
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: whiteBackground,
       appBar: CustomAppBar(text: "Status Peminjaman"),
-      // appBar: AppBar(
-      //   automaticallyImplyLeading: false,
-      //   title: Column(
-      //       crossAxisAlignment: CrossAxisAlignment.start,
-      //       mainAxisSize: MainAxisSize.min,
-      //       children: <Widget>[
-      //         Row(
-      //           children: [
-      //             Container(
-      //               margin: const EdgeInsets.only(right: 15),
-      //               child: CircleAvatar(
-      //                 backgroundColor: mediumBlue,
-      //                 child: IconButton(
-      //                   icon: Icon(Icons.arrow_back, color: primaryColor),
-      //                   onPressed: () {
-      //                     Navigator.pop(context);
-      //                   },
-      //                 ),
-      //               ),
-      //             ),
-      //             SizedBox(
-      //                 width: MediaQuery.of(context).size.width - 120,
-      //                 child: Text(
-      //                   "Status Peminjaman",
-      //                   style: Theme.of(context).textTheme.headline5,
-      //                   maxLines: 2,
-      //                   overflow: TextOverflow.ellipsis,
-      //                 ))
-      //           ],
-      //         ),
-      //         SizedBox(height: 2),
-      //         Divider(color: underline),
-      //       ]),
-      //   toolbarHeight: 70,
-      //   bottom: PreferredSize(
-      //       child: Container(
-      //         color: Colors.black12,
-      //         height: 0.3,
-      //       ),
-      //       preferredSize: Size.fromHeight(4.0)),
-      // ),
       body: SafeArea(
         child: Center(
           child: SingleChildScrollView(
@@ -109,7 +115,7 @@ class _StatusPinjamPageState extends State<StatusPinjamPage> {
 
   Widget _contentPinjam(BuildContext context, double width) {
     statusPinjam = true;
-
+    String currentUser = firebase.currentUser!.uid.toString();
     return Center(
       child: FutureBuilder<DocumentSnapshot>(
         future: status.doc(firebase.currentUser?.uid).get(),
@@ -130,8 +136,7 @@ class _StatusPinjamPageState extends State<StatusPinjamPage> {
                 ],
               ),
             );
-          }
-          if (snapshot.hasData && !snapshot.data!.exists) {
+          } else if (snapshot.hasData && !snapshot.data!.exists) {
             return Center(
               child: Padding(
                 padding: const EdgeInsets.symmetric(vertical: 30),
@@ -149,9 +154,7 @@ class _StatusPinjamPageState extends State<StatusPinjamPage> {
                 ),
               ),
             );
-          }
-
-          if (snapshot.connectionState == ConnectionState.done) {
+          } else if (snapshot.connectionState == ConnectionState.done) {
             Map<String, dynamic> data =
                 snapshot.data!.data() as Map<String, dynamic>;
             DateTime dtPinjam = (data['waktu_pinjam'] as Timestamp).toDate();
@@ -261,9 +264,6 @@ class _StatusPinjamPageState extends State<StatusPinjamPage> {
                                             padding: EdgeInsets.symmetric(
                                                 horizontal: 20, vertical: 10),
                                             child: Container(
-                                              width: MediaQuery.of(context)
-                                                  .size
-                                                  .width,
                                               padding: EdgeInsets.symmetric(
                                                   horizontal: 17, vertical: 5),
                                               decoration: BoxDecoration(
@@ -284,6 +284,7 @@ class _StatusPinjamPageState extends State<StatusPinjamPage> {
                                                   DropdownButtonHideUnderline(
                                                 child: ButtonTheme(
                                                   child: DropdownButton(
+                                                    isExpanded: true,
                                                     iconEnabledColor:
                                                         primaryColor,
                                                     dropdownColor:
@@ -331,86 +332,128 @@ class _StatusPinjamPageState extends State<StatusPinjamPage> {
                                             child: Align(
                                               alignment: Alignment.bottomRight,
                                               child: TextButton(
-                                                onPressed: () {
-                                                  print(
-                                                      "valueee ${widget.fakultasState}");
-                                                  var waktuKembali =
-                                                      DateTime.now();
-                                                  String dateFormatKembali =
-                                                      DateFormat(
-                                                              'EEE d MMM, hh:mm a')
-                                                          .format(waktuKembali);
-
-                                                  firestore
-                                                      .collection(
-                                                          'history_peminjaman')
-                                                      .doc(firebase
-                                                          .currentUser?.uid)
-                                                      .collection(
-                                                          'user_history')
-                                                      .doc()
-                                                      .set(
-                                                    {
-                                                      'id_sepeda':
-                                                          data['id_sepeda'],
-                                                      'jenis_sepeda':
-                                                          data['jenis_sepeda'],
-                                                      'email_peminjam': data[
-                                                          'email_peminjam'],
-                                                      'waktu_pinjam':
-                                                          data['waktu_pinjam'],
-                                                      'waktu_kembali':
-                                                          dateFormatKembali,
-                                                      'fakultas':
-                                                          data['fakultas']
-                                                    },
-                                                  );
-
-                                                  firestore
-                                                      .collection(
-                                                          'data_peminjaman')
-                                                      .doc(firebase
-                                                          .currentUser?.uid)
-                                                      .delete()
-                                                      .then((value) {
-                                                    setState(() {
-                                                      statusPinjam = false;
-                                                    });
-                                                  }).catchError((error) => print(
-                                                          "Failed to return bike: $error"));
-
-                                                  firestore
-                                                      .collection('data_sepeda')
-                                                      .doc(
-                                                          '${data['id_sepeda']}')
-                                                      .update(
-                                                    {
-                                                      'status': 'Tersedia',
-                                                      'fakultas':
-                                                          widget.fakultasState
-                                                    },
-                                                  );
-                                                  String currentUser = firebase
-                                                      .currentUser!.uid
-                                                      .toString();
-                                                  users.doc(currentUser).update(
-                                                    {'status': 0},
-                                                  );
-                                                  Navigator.of(context).pop();
-                                                },
                                                 child: Text(
                                                   'Submit',
                                                   style: Theme.of(context)
                                                       .textTheme
                                                       .subtitle1,
                                                 ),
+                                                onPressed: () async {
+                                                  var batasWaktu =
+                                                      data['waktu_kembali']
+                                                          .toDate();
+                                                  var waktuKembali =
+                                                      DateTime.now();
+                                                  var selisihJam = batasWaktu
+                                                      .difference(waktuKembali);
+                                                  var selisihJamNegatif =
+                                                      selisihJam
+                                                          .toString()
+                                                          .replaceAll(
+                                                              RegExp('-'), '');
+
+                                                  if (_connectionStatus !=
+                                                      ConnectivityResult.none) {
+                                                    status
+                                                        .doc(firebase
+                                                            .currentUser?.uid)
+                                                        .delete()
+                                                        .catchError((error) =>
+                                                            print(
+                                                                "Failed to return bike: $error"));
+
+                                                    firestore
+                                                        .collection(
+                                                            'history_peminjaman')
+                                                        .doc(firebase
+                                                            .currentUser?.uid)
+                                                        .collection(
+                                                            'user_history')
+                                                        .doc()
+                                                        .set(
+                                                      {
+                                                        'id_sepeda':
+                                                            data['id_sepeda'],
+                                                        'jenis_sepeda': data[
+                                                            'jenis_sepeda'],
+                                                        'email_peminjam': data[
+                                                            'email_peminjam'],
+                                                        'waktu_pinjam': data[
+                                                            'waktu_pinjam'],
+                                                        'waktu_kembali':
+                                                            waktuKembali,
+                                                        'fakultas':
+                                                            data['fakultas']
+                                                      },
+                                                    );
+
+                                                    firestore
+                                                        .collection(
+                                                            'data_sepeda')
+                                                        .doc(
+                                                            '${data['id_sepeda']}')
+                                                        .update(
+                                                      {
+                                                        'status': 'Tersedia',
+                                                        'fakultas':
+                                                            widget.fakultasState
+                                                      },
+                                                    );
+                                                    if (selisihJam.isNegative) {
+                                                      users
+                                                          .doc(currentUser)
+                                                          .update(
+                                                        {
+                                                          'status': 0,
+                                                          'sisa_jam': '0:00:00',
+                                                          'peminjaman_terakhir':
+                                                              waktuKembali,
+                                                          'denda_pinjam':
+                                                              selisihJamNegatif
+                                                        },
+                                                      );
+                                                    } else {
+                                                      users
+                                                          .doc(currentUser)
+                                                          .update(
+                                                        {
+                                                          'status': 0,
+                                                          'sisa_jam': selisihJam
+                                                              .toString(),
+                                                          'peminjaman_terakhir':
+                                                              waktuKembali
+                                                        },
+                                                      );
+                                                    }
+                                                    setState(() {
+                                                      statusPinjam = false;
+                                                    });
+                                                    Navigator.of(context).pop();
+                                                  } else {
+                                                    return showDialog(
+                                                      context: context,
+                                                      builder: (BuildContext
+                                                          context) {
+                                                        return CustomDialog(
+                                                          title:
+                                                              'Pengembalian Gagal',
+                                                          descriptions:
+                                                              'Error, silahkan coba lagi beberapa saat kemudian!',
+                                                          text: 'OK',
+                                                        );
+                                                      },
+                                                    );
+                                                  }
+                                                },
                                               ),
                                             ),
                                           )
                                         ],
                                       );
                                     });
-                                  });
+                                  }).then((value) {
+                                setState(() {});
+                              });
                             },
                           );
                         },
@@ -421,7 +464,7 @@ class _StatusPinjamPageState extends State<StatusPinjamPage> {
               ),
             );
           }
-          return Text("loading");
+          return CircularProgressIndicator();
         },
       ),
     );

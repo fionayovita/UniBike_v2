@@ -3,11 +3,11 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:unibike/api/api_service.dart';
 import 'package:unibike/common/styles.dart';
 import 'package:unibike/model/bike_model2.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
+import 'package:unibike/ui/history_peminjaman_page.dart';
 import 'package:unibike/ui/list_bike_page.dart';
 import 'package:unibike/ui/profile_page.dart';
 import 'package:unibike/ui/status_pinjam_page.dart';
@@ -70,7 +70,6 @@ class _MainPageState extends State<MainPage> {
     try {
       result = await _connectivity.checkConnectivity();
       if (result != ConnectivityResult.none) {
-        print('connection status ${result},');
         dataLoadFunction();
       }
     } on PlatformException catch (e) {
@@ -116,6 +115,25 @@ class _MainPageState extends State<MainPage> {
             statusPinjam = data['status'];
             isOnDebt = data.containsKey('denda_pinjam');
             var nama = data['nama'].split(" ") ?? 'bikers';
+
+            if (isOnDebt) {
+              var peminjamanTerakhir = data['peminjaman_terakhir'].toDate();
+              final today = DateTime.now();
+              Duration timeDifference = today.difference(peminjamanTerakhir);
+              if (timeDifference.inHours >= 24) {
+                users
+                    .doc('$currentUser')
+                    .update(
+                      {
+                        'denda_pinjam': FieldValue.delete(),
+                        'sisa_jam': "4:00:00"
+                      },
+                    )
+                    .whenComplete(() => print("field deleted"))
+                    .catchError(
+                        (error) => print("Failed to return bike: $error"));
+              }
+            }
             return Scaffold(
                 backgroundColor: whiteBackground,
                 appBar: AppBar(
@@ -155,7 +173,19 @@ class _MainPageState extends State<MainPage> {
                       child: GestureDetector(
                         onTap: () {
                           Navigator.pushNamed(
-                              context, StatusPinjamPage.routeName);
+                              context, HistoryPeminjamanPage.routeName);
+                        },
+                        child: Icon(
+                          Icons.history,
+                          color: lightBlue,
+                        ),
+                      ),
+                    ),
+                    Padding(
+                      padding: EdgeInsets.only(right: 15),
+                      child: GestureDetector(
+                        onTap: () {
+                          Navigator.pushNamed(context, ProfilePage.routeName);
                         },
                         child: Icon(
                           Icons.account_circle,
@@ -255,20 +285,20 @@ class _MainPageState extends State<MainPage> {
               snapshot.connectionState == ConnectionState.done) {
             return SingleChildScrollView(
               child: Container(
+                margin: EdgeInsets.only(bottom: (statusPinjam != 0) ? 85.0 : 0),
                 height: (statusPinjam != 0)
-                    ? 640
-                    : (MediaQuery.of(context).size.height * 0.8),
+                    ? (MediaQuery.of(context).size.height * 0.78)
+                    : (MediaQuery.of(context).size.height * 0.85),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   mainAxisSize: MainAxisSize.min,
                   children: <Widget>[
-                    statusPinjam != 0
+                    statusPinjam == 0 && dataSnapshot['sisa_jam'] != '4:00:00'
                         ? Container(
                             width: double.infinity,
                             padding: const EdgeInsets.symmetric(
                                 vertical: 10, horizontal: 17),
                             decoration: BoxDecoration(
-                              // color: const Color(0xff7c94b6),
                               image: const DecorationImage(
                                 image: AssetImage(
                                   'assets/gradientBg.png',
@@ -280,7 +310,7 @@ class _MainPageState extends State<MainPage> {
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                dataSnapshot['sisa_jam'].contains('-')
+                                dataSnapshot['sisa_jam'] == '0:00:00'
                                     ? Text(
                                         "Anda tidak memiliki sisa waktu pinjam hari ini",
                                         style: Theme.of(context)
@@ -337,7 +367,7 @@ class _MainPageState extends State<MainPage> {
                             ),
                           )
                         : SizedBox(height: 0),
-                    SizedBox(height: statusPinjam != 0 ? 17 : 0),
+                    SizedBox(height: statusPinjam == 0 ? 17 : 0),
                     Text(
                       "Pilih shelter peminjaman",
                       style: Theme.of(context).textTheme.headline5,

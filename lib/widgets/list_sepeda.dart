@@ -38,6 +38,7 @@ class ListSepeda extends StatelessWidget {
                     statusPinjam: 1,
                     fakultas: fakultas,
                     onPressedPinjam: ((bool, int) => null),
+                    sisaJam: "00",
                   );
                 },
               ),

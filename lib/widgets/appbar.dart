@@ -43,19 +43,10 @@ class CustomAppBar extends StatelessWidget with PreferredSizeWidget {
                     ))
               ],
             ),
-            SizedBox(height: 2),
+            SizedBox(height: 5),
             Divider(color: underline),
           ]),
       toolbarHeight: 70,
     );
   }
 }
-
-// Text('Status Peminjaman',
-//             style: Theme.of(context).textTheme.headline5),
-//         toolbarHeight: 70,
-//         bottom: PreferredSize(
-//             child: Container(
-//               color: Colors.black12,
-//               height: 0.3,
-//             ),
