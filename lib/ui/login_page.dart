@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:unibike/common/styles.dart';
 import 'package:unibike/ui/main_page.dart';
+import 'package:unibike/ui/register_page.dart';
 import 'package:unibike/widgets/custom_dialog.dart';
 
 class LoginPage extends StatefulWidget {

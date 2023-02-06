@@ -29,8 +29,6 @@ class _BottomSheetState extends State<BottomSheetWidget> {
       FirebaseFirestore.instance.collection('data_peminjaman');
   final CollectionReference users =
       FirebaseFirestore.instance.collection('users');
-  //   final CollectionReference history =
-  // FirebaseFirestore.instance.collection('users');
 
   String? fakultas;
   List _listFakultas = [
@@ -382,6 +380,18 @@ class _BottomSheetState extends State<BottomSheetWidget> {
                                       });
 
                                       Navigator.of(context).pop();
+
+                                      showDialog(
+                                        context: context,
+                                        builder: (BuildContext context) {
+                                          return CustomDialog(
+                                            title: 'Sukses!',
+                                            descriptions:
+                                                'Berhasil mengembalikan sepeda, peminjaman sepeda anda selesai.',
+                                            text: 'OK',
+                                          );
+                                        },
+                                      );
                                     } else {
                                       return showDialog(
                                         context: context,

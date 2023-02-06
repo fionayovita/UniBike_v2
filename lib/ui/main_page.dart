@@ -9,6 +9,7 @@ import 'package:unibike/model/bike_model2.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:unibike/ui/history_peminjaman_page.dart';
 import 'package:unibike/ui/list_bike_page.dart';
+import 'package:unibike/ui/login_page.dart';
 import 'package:unibike/ui/profile_page.dart';
 import 'package:unibike/ui/status_pinjam_page.dart';
 import 'package:unibike/widgets/bottom_sheet.dart';
@@ -130,6 +131,22 @@ class _MainPageState extends State<MainPage> {
                       },
                     )
                     .whenComplete(() => print("field deleted"))
+                    .catchError(
+                        (error) => print("Failed to return bike: $error"));
+              }
+            } else {
+              var peminjamanTerakhir = data['peminjaman_terakhir'].toDate();
+              final today = DateTime.now();
+              if (peminjamanTerakhir.year != today.year &&
+                  peminjamanTerakhir.day != today.day &&
+                  peminjamanTerakhir.month != today.month) {
+                users
+                    .doc('$currentUser')
+                    .update(
+                      {'sisa_jam': "4:00:00"},
+                    )
+                    .whenComplete(
+                        () => print("sisa jam returned to 4 hours a day"))
                     .catchError(
                         (error) => print("Failed to return bike: $error"));
               }

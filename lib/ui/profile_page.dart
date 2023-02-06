@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:ui';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_storage/firebase_storage.dart';
@@ -7,6 +8,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:unibike/common/styles.dart';
 import 'package:unibike/ui/login_page.dart';
 import 'package:unibike/widgets/appbar.dart';
+import 'package:unibike/widgets/confirmation_dialog.dart';
 import 'package:unibike/widgets/custom_dialog.dart';
 
 class ProfilePage extends StatefulWidget {
@@ -277,30 +279,36 @@ class _ProfilePageState extends State<ProfilePage> {
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(10),
                 ),
-                onPressed: () async {
-                  try {
-                    await firebase
-                        .signOut()
-                        .whenComplete(() => Navigator.pushNamedAndRemoveUntil(
-                              context,
-                              LoginPage.routeName,
-                              (route) => false,
-                            ));
-                  } on FirebaseAuthException catch (e) {
-                    print('Failed with error code: ${e.code}');
-                    print("Failed message : ${e.message}");
-                    return showDialog(
-                      context: context,
-                      builder: (BuildContext context) {
-                        return CustomDialog(
-                          title: 'Log Out Gagal',
-                          descriptions:
-                              'Error: ${e.message}. Silahkan coba lagi beberapa saat kemudian!',
-                          text: 'OK',
-                        );
-                      },
-                    );
-                  }
+                onPressed: () {
+                  showDialog(
+                    context: context,
+                    builder: (BuildContext context) {
+                      return dialogAsk(context, () async {
+                        try {
+                          await firebase.signOut().whenComplete(
+                              () => Navigator.pushNamedAndRemoveUntil(
+                                    context,
+                                    LoginPage.routeName,
+                                    (route) => false,
+                                  ));
+                        } on FirebaseAuthException catch (e) {
+                          print('Failed with error code: ${e.code}');
+                          print("Failed message : ${e.message}");
+                          return showDialog(
+                            context: context,
+                            builder: (BuildContext context) {
+                              return CustomDialog(
+                                title: 'Log Out Gagal',
+                                descriptions:
+                                    'Error: ${e.message}. Silahkan coba lagi beberapa saat kemudian!',
+                                text: 'OK',
+                              );
+                            },
+                          );
+                        }
+                      });
+                    },
+                  );
                 },
               ),
             ],
@@ -308,6 +316,23 @@ class _ProfilePageState extends State<ProfilePage> {
         }
         return CircularProgressIndicator();
       },
+    );
+  }
+
+  Widget dialogAsk(BuildContext context, Function onPressedPinjam) {
+    return BackdropFilter(
+      filter: ImageFilter.blur(sigmaX: 5, sigmaY: 5),
+      child: Dialog(
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(25.0),
+        ),
+        elevation: 0,
+        backgroundColor: Colors.transparent,
+        child: ConfirmationDialog(
+          onPressedPinjam: onPressedPinjam,
+          text: "Apa kamu yakin ingin log out?",
+        ),
+      ),
     );
   }
 

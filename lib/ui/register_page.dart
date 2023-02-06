@@ -210,7 +210,9 @@ class _RegisterPageState extends State<RegisterPage> {
                   'npm': npm,
                   'prodi': prodi,
                   'fakultas': fakultas,
-                  'sisa_jam': "4:00:00"
+                  'sisa_jam': "4:00:00",
+                  'favorite': [],
+                  'status': 0
                 });
                 Navigator.pop(context);
               } catch (e) {

@@ -49,6 +49,10 @@ class RouterHelper {
             return BikeDetailPage(
               bike: argument.bike,
               fakultas: argument.fakultas,
+              statusPinjam: argument.statusPinjam,
+              sisaJam: argument.sisaJam,
+              onDebt: argument.onDebt,
+              onPressedPinjam: argument.onPressedPinjam,
             );
           },
         );

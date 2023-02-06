@@ -429,6 +429,19 @@ class _StatusPinjamPageState extends State<StatusPinjamPage> {
                                                       statusPinjam = false;
                                                     });
                                                     Navigator.of(context).pop();
+
+                                                    showDialog(
+                                                      context: context,
+                                                      builder: (BuildContext
+                                                          context) {
+                                                        return CustomDialog(
+                                                          title: 'Sukses!',
+                                                          descriptions:
+                                                              'Berhasil mengembalikan sepeda, peminjaman sepeda anda selesai.',
+                                                          text: 'OK',
+                                                        );
+                                                      },
+                                                    );
                                                   } else {
                                                     return showDialog(
                                                       context: context,

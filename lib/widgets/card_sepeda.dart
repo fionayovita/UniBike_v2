@@ -100,7 +100,6 @@ class _CardSepedaState extends State<CardSepeda> {
   }
 
   Widget _content(BuildContext context) {
-    print("sisajam nya ${widget.sisaJam}");
     String emailUser = firebase.currentUser!.email.toString();
     bool isAvailable = widget.bike.fields.status.value == 'Tersedia' ||
         widget.bike.fields.status.value == 'tersedia';
@@ -111,8 +110,13 @@ class _CardSepedaState extends State<CardSepeda> {
     return InkWell(
       onTap: () {
         Navigator.pushNamed(context, BikeDetailPage.routeName,
-            arguments:
-                BikeDetailArgs(bike: widget.bike, fakultas: widget.fakultas!));
+            arguments: BikeDetailArgs(
+                bike: widget.bike,
+                fakultas: widget.fakultas!,
+                statusPinjam: widget.statusPinjam,
+                sisaJam: widget.sisaJam,
+                onDebt: widget.onDebt,
+                onPressedPinjam: widget.onPressedPinjam));
       },
       child: Card(
         elevation: 3,
@@ -303,7 +307,6 @@ class _CardSepedaState extends State<CardSepeda> {
   }
 
   Widget contentBox(BuildContext context, Function onPressedPinjam) {
-    print('ada ga yaaaa test');
     return Container(
       padding: EdgeInsets.only(
           left: 12.0, top: 50.0 + 12.0, right: 12.0, bottom: 10),
