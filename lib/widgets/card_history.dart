@@ -1,4 +1,3 @@
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:unibike/common/styles.dart';
 
@@ -17,8 +16,7 @@ class CardHistory extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Card(
-      shape:
-            RoundedRectangleBorder(borderRadius: BorderRadius.circular(10.0)),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10.0)),
       margin: const EdgeInsets.symmetric(vertical: 13, horizontal: 13),
       elevation: 2,
       shadowColor: greyButton,

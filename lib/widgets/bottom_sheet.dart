@@ -7,6 +7,7 @@ import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:unibike/common/styles.dart';
+import 'package:unibike/function/kembalikan_sepeda.dart';
 import 'package:unibike/ui/status_pinjam_page.dart';
 import 'package:unibike/widgets/custom_dialog.dart';
 
@@ -215,206 +216,24 @@ class _BottomSheetState extends State<BottomSheetWidget> {
             ),
             SizedBox(width: 15),
             ElevatedButton(
-              style: ElevatedButton.styleFrom(backgroundColor: lightBlue),
-              child: Text(
-                'Kembalikan',
-                style: GoogleFonts.poppins(
-                  textStyle: TextStyle(
-                    color: primaryColor,
-                    fontSize: 15,
-                    fontWeight: FontWeight.bold,
+                style: ElevatedButton.styleFrom(backgroundColor: lightBlue),
+                child: Text(
+                  'Kembalikan',
+                  style: GoogleFonts.poppins(
+                    textStyle: TextStyle(
+                      color: primaryColor,
+                      fontSize: 15,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                 ),
-              ),
-              onPressed: () {
-                showDialog(
-                    context: context,
-                    builder: (BuildContext context) {
-                      return StatefulBuilder(builder: (context, setState) {
-                        return new SimpleDialog(
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(8.0),
-                          ),
-                          elevation: 0,
-                          title: new Text('Fakultas pengembalian sepeda:',
-                              style: Theme.of(context).textTheme.headline5),
-                          children: <Widget>[
-                            Padding(
-                              padding: EdgeInsets.symmetric(
-                                  horizontal: 20, vertical: 10),
-                              child: Container(
-                                padding: EdgeInsets.symmetric(
-                                    horizontal: 17, vertical: 5),
-                                decoration: BoxDecoration(
-                                  color: secondaryColor,
-                                  borderRadius: BorderRadius.circular(10),
-                                  boxShadow: [
-                                    BoxShadow(
-                                      color: Colors.grey.withOpacity(0.7),
-                                      spreadRadius: 2,
-                                      blurRadius: 3,
-                                      offset: Offset(0, 3),
-                                    )
-                                  ],
-                                ),
-                                child: DropdownButtonHideUnderline(
-                                  child: ButtonTheme(
-                                    child: DropdownButton(
-                                      isExpanded: true,
-                                      iconEnabledColor: primaryColor,
-                                      dropdownColor: secondaryColor,
-                                      hint: Text("Pilih Fakultas",
-                                          style: Theme.of(context)
-                                              .textTheme
-                                              .subtitle2),
-                                      value: fakultas,
-                                      items: _listFakultas.map(
-                                        (value) {
-                                          return DropdownMenuItem<String>(
-                                            child: Text(value,
-                                                style: Theme.of(context)
-                                                    .textTheme
-                                                    .subtitle2),
-                                            value: value,
-                                          );
-                                        },
-                                      ).toList(),
-                                      onChanged: (String? value) {
-                                        setState(
-                                          () {
-                                            fakultas = value as String;
-                                            var idx =
-                                                _listFakultas.indexOf(value);
-                                            widget.fakultasState =
-                                                _fakultasDb[idx];
-                                          },
-                                        );
-                                      },
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            ),
-                            Padding(
-                              padding: EdgeInsets.symmetric(horizontal: 20),
-                              child: Align(
-                                alignment: Alignment.bottomRight,
-                                child: TextButton(
-                                  child: Text(
-                                    'Submit',
-                                    style:
-                                        Theme.of(context).textTheme.subtitle1,
-                                  ),
-                                  onPressed: () async {
-                                    var batasWaktu =
-                                        dataSnapshot['waktu_kembali'].toDate();
-                                    var waktuKembali = DateTime.now();
-                                    var selisihJam =
-                                        batasWaktu.difference(waktuKembali);
-                                    var selisihJamNegatif = selisihJam
-                                        .toString()
-                                        .replaceAll(RegExp('-'), '');
-
-                                    if (_connectionStatus !=
-                                        ConnectivityResult.none) {
-                                      dataPeminjaman
-                                          .doc(firebase.currentUser?.uid)
-                                          .delete()
-                                          .then((value) {
-                                        setState(() {
-                                          widget.statusPinjam = false;
-                                        });
-                                      }).catchError((error) => print(
-                                              "Failed to return bike: $error"));
-
-                                      firestore
-                                          .collection('data_sepeda')
-                                          .doc('${dataSnapshot['id_sepeda']}')
-                                          .update(
-                                        {
-                                          'status': 'Tersedia',
-                                          'fakultas': widget.fakultasState
-                                        },
-                                      );
-
-                                      firestore
-                                          .collection('history_peminjaman')
-                                          .doc(firebase.currentUser?.uid)
-                                          .collection('user_history')
-                                          .doc()
-                                          .set(
-                                        {
-                                          'id_sepeda':
-                                              dataSnapshot['id_sepeda'],
-                                          'jenis_sepeda':
-                                              dataSnapshot['jenis_sepeda'],
-                                          'email_peminjam':
-                                              dataSnapshot['email_peminjam'],
-                                          'waktu_pinjam':
-                                              dataSnapshot['waktu_pinjam'],
-                                          'waktu_kembali': waktuKembali,
-                                          'fakultas': dataSnapshot['fakultas']
-                                        },
-                                      );
-                                      if (selisihJam.isNegative) {
-                                        users.doc(currentUser).update(
-                                          {
-                                            'status': 0,
-                                            'sisa_jam': '0:00:00',
-                                            'peminjaman_terakhir': waktuKembali,
-                                            'denda_pinjam': selisihJamNegatif
-                                          },
-                                        );
-                                      } else {
-                                        users.doc(currentUser).update(
-                                          {
-                                            'status': 0,
-                                            'sisa_jam': selisihJam.toString(),
-                                            'peminjaman_terakhir': waktuKembali
-                                          },
-                                        );
-                                      }
-                                      setState(() {
-                                        widget.statusPinjam = false;
-                                        widget.onPressedPinjam(true);
-                                      });
-
-                                      Navigator.of(context).pop();
-
-                                      showDialog(
-                                        context: context,
-                                        builder: (BuildContext context) {
-                                          return CustomDialog(
-                                            title: 'Sukses!',
-                                            descriptions:
-                                                'Berhasil mengembalikan sepeda, peminjaman sepeda anda selesai.',
-                                            text: 'OK',
-                                          );
-                                        },
-                                      );
-                                    } else {
-                                      return showDialog(
-                                        context: context,
-                                        builder: (BuildContext context) {
-                                          return CustomDialog(
-                                            title: 'Pengembalian Gagal',
-                                            descriptions:
-                                                'Error, silahkan coba lagi beberapa saat kemudian!',
-                                            text: 'OK',
-                                          );
-                                        },
-                                      );
-                                    }
-                                  },
-                                ),
-                              ),
-                            )
-                          ],
-                        );
-                      });
-                    });
-              },
-            ),
+                onPressed: KembalikanSepeda(
+                        context: context,
+                        data: dataSnapshot,
+                        setState: setState,
+                        currentUser: currentUser,
+                        connectionStatus: _connectionStatus)
+                    .mengembalikanSepeda),
           ],
         ),
       ),

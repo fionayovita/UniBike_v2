@@ -9,9 +9,7 @@ import 'package:unibike/model/bike_model2.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:unibike/ui/history_peminjaman_page.dart';
 import 'package:unibike/ui/list_bike_page.dart';
-import 'package:unibike/ui/login_page.dart';
 import 'package:unibike/ui/profile_page.dart';
-import 'package:unibike/ui/status_pinjam_page.dart';
 import 'package:unibike/widgets/bottom_sheet.dart';
 
 class MainPage extends StatefulWidget {

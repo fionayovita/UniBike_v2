@@ -1,19 +1,13 @@
 import 'dart:async';
-import 'dart:ui';
-
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:unibike/common/styles.dart';
+import 'package:unibike/function/pinjam_sepeda.dart';
 import 'package:unibike/model/bike_model2.dart';
-import 'package:unibike/provider/alarm_provider.dart';
-import 'package:unibike/provider/preferences_provider.dart';
-import 'package:unibike/widgets/confirmation_dialog.dart';
-import 'package:unibike/widgets/custom_dialog.dart';
 
 class BikeDetailArgs {
   final ListSepeda bike;
@@ -159,7 +153,6 @@ class _BikeDetailPageState extends State<BikeDetailPage> {
         '');
     var isAvail = widget.bike.fields.status.value == "tersedia" ||
         widget.bike.fields.status.value == "Tersedia";
-    String emailUser = widget.firebase.currentUser!.email.toString();
 
     return Stack(
       children: [
@@ -224,183 +217,23 @@ class _BikeDetailPageState extends State<BikeDetailPage> {
               Container(
                 width: width,
                 alignment: Alignment.center,
-                child: Consumer<PreferencesProvider>(
-                  builder: (context, provider, child) {
-                    return Consumer<SchedulingProvider>(
-                      builder: (context, scheduled, child) {
-                        return ElevatedButton(
-                          child: Text('Pinjam',
-                              style: Theme.of(context).textTheme.headline6),
-                          style: ElevatedButton.styleFrom(
-                              minimumSize: Size(width, 50)),
-                          onPressed: isAvail
-                              ? (() {
-                                  widget.statusPinjam == 0
-                                      ? widget.onDebt
-                                          ? showDialog(
-                                              context: context,
-                                              builder: (BuildContext context) {
-                                                return CustomDialog(
-                                                  title:
-                                                      'Anda memiliki denda waktu peminjaman!',
-                                                  descriptions:
-                                                      'Anda telat mengembalikan sepeda di peminjaman sebelumnya, sehingga tidak dapat meminjam sepeda selama satu hari.',
-                                                  text: 'OK',
-                                                );
-                                              },
-                                            )
-                                          : showDialog(
-                                              context: context,
-                                              builder: (BuildContext context) {
-                                                return dialogAsk(context, () {
-                                                  if (_connectionStatus !=
-                                                      ConnectivityResult.none) {
-                                                    try {
-                                                      final jenisSepeda = widget
-                                                          .bike
-                                                          .fields
-                                                          .jenisSepeda
-                                                          .value;
-                                                      var today =
-                                                          DateTime.now();
-
-                                                      var sisaJamSplit = widget
-                                                          .sisaJam
-                                                          .split(':');
-                                                      var sisaJamInDate =
-                                                          new DateTime(
-                                                              today.year,
-                                                              today.month,
-                                                              today.day,
-                                                              int.parse(
-                                                                  sisaJamSplit[
-                                                                      0]),
-                                                              int.parse(
-                                                                  sisaJamSplit[
-                                                                      1]),
-                                                              0);
-
-                                                      var formattedTime =
-                                                          new DateTime(
-                                                              today.year,
-                                                              today.month,
-                                                              today.day,
-                                                              0,
-                                                              0,
-                                                              0);
-
-                                                      Duration timeDifference =
-                                                          sisaJamInDate
-                                                              .difference(
-                                                                  formattedTime);
-
-                                                      var kembali = today.add(
-                                                          Duration(
-                                                              seconds: widget
-                                                                          .sisaJam !=
-                                                                      "4:00:00"
-                                                                  ? timeDifference
-                                                                      .inSeconds
-                                                                  : 14400));
-
-                                                      widget.dataPeminjaman
-                                                          .doc(widget.firebase
-                                                              .currentUser?.uid)
-                                                          .set(
-                                                        {
-                                                          'id_sepeda': docId,
-                                                          'jenis_sepeda':
-                                                              jenisSepeda,
-                                                          'email_peminjam':
-                                                              emailUser,
-                                                          'waktu_pinjam': today,
-                                                          'waktu_kembali':
-                                                              kembali,
-                                                          'fakultas':
-                                                              widget.fakultas
-                                                        },
-                                                      );
-
-                                                      widget.dataSepeda
-                                                          .doc(docId)
-                                                          .update(
-                                                        {
-                                                          'status':
-                                                              'Tidak Tersedia'
-                                                        },
-                                                      );
-                                                      pinjamSepedaFunction(
-                                                          today);
-
-                                                      return showDialog(
-                                                        context: context,
-                                                        builder: (BuildContext
-                                                            context) {
-                                                          return CustomDialog(
-                                                            title:
-                                                                'Sukses Pinjam Sepeda!',
-                                                            descriptions:
-                                                                'Silahkan cek status peminjaman di halaman Status Pinjam untuk melihat lebih detail',
-                                                            text: 'OK',
-                                                          );
-                                                        },
-                                                      );
-                                                    } catch (e) {
-                                                      return showDialog(
-                                                        context: context,
-                                                        builder: (BuildContext
-                                                            context) {
-                                                          return CustomDialog(
-                                                            title:
-                                                                'Peminjaman Gagal',
-                                                            descriptions:
-                                                                'Error: ${e.toString()}. Silahkan coba lagi beberapa saat kemudian!',
-                                                            text: 'OK',
-                                                          );
-                                                        },
-                                                      );
-                                                    } finally {
-                                                      setState(() {
-                                                        widget.fakultas;
-                                                        widget.bike;
-                                                        // isAvail = false;
-                                                      });
-                                                    }
-                                                  } else {
-                                                    return showDialog(
-                                                      context: context,
-                                                      builder: (BuildContext
-                                                          context) {
-                                                        return CustomDialog(
-                                                          title:
-                                                              'Peminjaman Gagal',
-                                                          descriptions:
-                                                              'Error, silahkan coba lagi beberapa saat kemudian!',
-                                                          text: 'OK',
-                                                        );
-                                                      },
-                                                    );
-                                                  }
-                                                });
-                                              })
-                                      : showDialog(
-                                          context: context,
-                                          builder: (BuildContext context) {
-                                            return CustomDialog(
-                                              title:
-                                                  'Anda sedang meminjam sepeda',
-                                              descriptions:
-                                                  'Satu akun hanya boleh meminjam satu sepeda di waktu yang sama.',
-                                              text: 'OK',
-                                            );
-                                          },
-                                        );
-                                })
-                              : null,
-                        );
-                      },
-                    );
-                  },
+                child: ElevatedButton(
+                  child: Text('Pinjam',
+                      style: Theme.of(context).textTheme.headline6),
+                  style: ElevatedButton.styleFrom(minimumSize: Size(width, 50)),
+                  onPressed: isAvail
+                      ? PinjamSepeda(
+                              statusPinjam: widget.statusPinjam,
+                              onDebt: widget.onDebt,
+                              context: context,
+                              connectionStatus: _connectionStatus,
+                              bike: widget.bike,
+                              sisaJam: widget.sisaJam,
+                              fakultas: widget.fakultas,
+                              onPressedPinjam: widget.onPressedPinjam,
+                              setState: setState)
+                          .MeminjamSepeda
+                      : null,
                 ),
               ),
             ],
@@ -420,23 +253,6 @@ class _BikeDetailPageState extends State<BikeDetailPage> {
                 child: CircularProgressIndicator(),
               )),
       ],
-    );
-  }
-
-  Widget dialogAsk(BuildContext context, Function onPressedPinjam) {
-    return BackdropFilter(
-      filter: ImageFilter.blur(sigmaX: 5, sigmaY: 5),
-      child: Dialog(
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(25.0),
-        ),
-        elevation: 0,
-        backgroundColor: Colors.transparent,
-        child: ConfirmationDialog(
-          onPressedPinjam: onPressedPinjam,
-          text: "Apakah kamu yakin ingin meminjam sepeda ini?",
-        ),
-      ),
     );
   }
 }

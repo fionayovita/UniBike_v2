@@ -99,7 +99,7 @@ class _ListBikePageState extends State<ListBikePage> {
     } on PlatformException catch (e) {
       print('Couldn\'t check connectivity status ${e}');
       return;
-    } on TimeoutException catch (e) {}
+    }
     if (!mounted) {
       return Future.value(null);
     }
@@ -213,9 +213,6 @@ class _ListBikePageState extends State<ListBikePage> {
   }
 
   Widget _content(BuildContext context, int gridCount) {
-    var size = MediaQuery.of(context).size;
-    final double itemHeight = (size.height - kToolbarHeight - 24) / 3;
-    final double itemWidth = size.width / 2;
     return _isLoading
         ? Center(
             child: CircularProgressIndicator(),
