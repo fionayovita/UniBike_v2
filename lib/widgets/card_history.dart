@@ -3,13 +3,15 @@ import 'package:unibike/common/styles.dart';
 
 class CardHistory extends StatelessWidget {
   final String jenisSepeda;
-  final String fakultas;
+  final String fakultasPinjam;
+  final String fakultasKembali;
   final String waktuPinjam;
   final String waktuKembali;
 
   const CardHistory(
       {required this.jenisSepeda,
-      required this.fakultas,
+      required this.fakultasPinjam,
+      required this.fakultasKembali,
       required this.waktuPinjam,
       required this.waktuKembali});
 
@@ -33,14 +35,19 @@ class CardHistory extends StatelessWidget {
             Text(jenisSepeda, style: Theme.of(context).textTheme.headline5),
             SizedBox(height: 8),
             Text(
-              'Fakultas Pinjam: $fakultas',
+              'Fakultas Pinjam: $fakultasPinjam',
+              style: Theme.of(context).textTheme.subtitle1,
+            ),
+            SizedBox(height: 6),
+            Text(
+              'Fakultas Pengembalian: $fakultasKembali',
               style: Theme.of(context).textTheme.subtitle1,
             ),
             SizedBox(height: 6),
             Text('Waktu Pinjam: $waktuPinjam',
                 style: Theme.of(context).textTheme.subtitle1),
             SizedBox(height: 6),
-            Text('Waktu Pinjam: $waktuKembali',
+            Text('Waktu Pengembalian: $waktuKembali',
                 style: Theme.of(context).textTheme.subtitle1),
           ],
         ),

@@ -210,7 +210,7 @@ class _BikeDetailPageState extends State<BikeDetailPage> {
               ),
               SizedBox(height: 5),
               Text(
-                'Waktu peminjaman sepeda adalah 3 jam. Jika telat mengembalikan, maka jam peminjaman sepeda anda selanjutnya akan dipotong.',
+                'Waktu peminjaman sepeda adalah 4 jam. Jika telat mengembalikan, maka anda tidak dapat meminjam sepeda selama satu hari berikutnya.',
                 style: Theme.of(context).textTheme.bodyText1,
               ),
               SizedBox(height: 30),

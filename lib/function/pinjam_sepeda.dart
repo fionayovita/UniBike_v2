@@ -37,8 +37,17 @@ class PinjamSepeda {
     String docId = bike.name.replaceAll(
         'projects/unibike-13780/databases/(default)/documents/data_sepeda/',
         '');
-    print("masuk sini ga");
-    statusPinjam == 0
+
+    var statusSepeda = await FirebaseFirestore.instance
+        .collection('data_sepeda')
+        .doc(docId)
+        .get()
+        .then((value) {
+      return value.data()?['status']; // Access your after your get the data
+    });
+
+    statusPinjam == 0 &&
+            (statusSepeda == 'Tersedia' || statusSepeda == 'tersedia')
         ? onDebt
             ? showDialog(
                 context: context,
@@ -147,16 +156,28 @@ class PinjamSepeda {
                         }
                       });
                 })
-        : showDialog(
-            context: context,
-            builder: (BuildContext context) {
-              return CustomDialog(
-                title: 'Anda sedang meminjam sepeda',
-                descriptions:
-                    'Satu akun hanya boleh meminjam satu sepeda di waktu yang sama.',
-                text: 'OK',
+        : (statusSepeda == 'Tersedia' || statusSepeda == 'tersedia')
+            ? showDialog(
+                context: context,
+                builder: (BuildContext context) {
+                  return CustomDialog(
+                    title: 'Anda sedang meminjam sepeda',
+                    descriptions:
+                        'Satu akun hanya boleh meminjam satu sepeda di waktu yang sama.',
+                    text: 'OK',
+                  );
+                },
+              )
+            : showDialog(
+                context: context,
+                builder: (BuildContext context) {
+                  return CustomDialog(
+                    title: 'Gagal',
+                    descriptions:
+                        'Silahkan muat ulang halaman untuk melihat apakah sepeda tersedia.',
+                    text: 'OK',
+                  );
+                },
               );
-            },
-          );
   }
 }

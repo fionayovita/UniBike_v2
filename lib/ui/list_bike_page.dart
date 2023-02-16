@@ -292,7 +292,6 @@ class _ListBikePageState extends State<ListBikePage> {
                     : GridView.count(
                         physics: ScrollPhysics(),
                         crossAxisCount: gridCount,
-                        // childAspectRatio: (itemWidth / itemHeight),
                         shrinkWrap: true,
                         padding: EdgeInsets.only(
                             bottom: widget.statusPinjam != 0 ? 70 : 0),

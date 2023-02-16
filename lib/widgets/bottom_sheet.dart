@@ -159,7 +159,6 @@ class _BottomSheetState extends State<BottomSheetWidget> {
         final seconds = myDuration.inSeconds - reduceSecondsBy;
         if (seconds < 0) {
           countdownTimer!.cancel();
-          print("the time stopped you are running out of time");
         } else {
           myDuration = Duration(seconds: seconds);
         }
@@ -173,6 +172,7 @@ class _BottomSheetState extends State<BottomSheetWidget> {
     final hours = strDigits(myDuration.inHours.remainder(24));
     final minutes = strDigits(myDuration.inMinutes.remainder(60));
     final seconds = strDigits(myDuration.inSeconds.remainder(60));
+    print("width ${MediaQuery.of(context).size.width}");
 
     String currentUser = firebase.currentUser!.uid.toString();
     return GestureDetector(
@@ -207,16 +207,18 @@ class _BottomSheetState extends State<BottomSheetWidget> {
                   style: GoogleFonts.poppins(
                     textStyle: TextStyle(
                       color: primaryColor,
-                      fontSize: 20,
+                      fontSize: 18,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
                 ),
               ],
             ),
-            SizedBox(width: 15),
+            // SizedBox(width: 6),
             ElevatedButton(
-                style: ElevatedButton.styleFrom(backgroundColor: lightBlue),
+                style: ElevatedButton.styleFrom(
+                    backgroundColor: lightBlue,
+                    padding: EdgeInsets.symmetric(horizontal: 9, vertical: 8)),
                 child: Text(
                   'Kembalikan',
                   style: GoogleFonts.poppins(

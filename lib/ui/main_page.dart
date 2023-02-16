@@ -40,7 +40,6 @@ class _MainPageState extends State<MainPage> {
     "Hukum"
   ];
 
-  List _fakultasDb = ["ft", "fmipa", "feb", "fk", "fp", "fkip", "fisip", "fh"];
   List<dynamic> favFakultas = [];
   List<ListSepeda> filteredList = [];
   int statusPinjam = 0;
@@ -98,6 +97,37 @@ class _MainPageState extends State<MainPage> {
     });
   }
 
+  String convertFakultas(String chosenFakultas) {
+    var result;
+    if (chosenFakultas == "Teknik") {
+      result = 'ft';
+      return result;
+    } else if (chosenFakultas == "MIPA") {
+      result = 'fmipa';
+      return result;
+    } else if (chosenFakultas == "Ekonomi") {
+      result = 'feb';
+      return result;
+    } else if (chosenFakultas == "Kedokteran") {
+      result = 'fk';
+      return result;
+    } else if (chosenFakultas == "Pertanian") {
+      result = 'fp';
+      return result;
+    } else if (chosenFakultas == "Keguruan dan Ilmu Pendidikan") {
+      result = 'fkip';
+      return result;
+    } else if (chosenFakultas == "Ilmu Sosial dan Pemerintahan") {
+      result = 'fisip';
+      return result;
+    } else if (chosenFakultas == "Hukum") {
+      result = 'fh';
+      return result;
+    } else {
+      return 'ft';
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     String currentUser = firebase.currentUser!.uid.toString();
@@ -119,7 +149,7 @@ class _MainPageState extends State<MainPage> {
               var peminjamanTerakhir = data['peminjaman_terakhir'].toDate();
               final today = DateTime.now();
               Duration timeDifference = today.difference(peminjamanTerakhir);
-              if (timeDifference.inHours >= 24) {
+              if (timeDifference.inDays >= 1) {
                 users
                     .doc('$currentUser')
                     .update(
@@ -134,10 +164,12 @@ class _MainPageState extends State<MainPage> {
               }
             } else {
               var peminjamanTerakhir = data['peminjaman_terakhir'].toDate();
+              var oneDay = new DateTime(peminjamanTerakhir.year,
+                  peminjamanTerakhir.month, peminjamanTerakhir.day, 24);
               final today = DateTime.now();
-              if (peminjamanTerakhir.year != today.year &&
-                  peminjamanTerakhir.day != today.day &&
-                  peminjamanTerakhir.month != today.month) {
+              Duration timeDifference = today.difference(oneDay);
+
+              if (timeDifference.inDays >= 1) {
                 users
                     .doc('$currentUser')
                     .update(
@@ -148,6 +180,19 @@ class _MainPageState extends State<MainPage> {
                     .catchError(
                         (error) => print("Failed to return bike: $error"));
               }
+            }
+
+            List? favIsEmpty() {
+              return _listFakultas.where((e) {
+                return favFakultas.contains(e);
+              }).toList();
+            }
+
+            if (favIsEmpty()?.length != 0) {
+              favIsEmpty()!.forEach((element) {
+                _listFakultas.removeWhere((fakultas) => fakultas == element);
+                _listFakultas.insert(0, element);
+              });
             }
             return Scaffold(
                 backgroundColor: whiteBackground,
@@ -402,7 +447,7 @@ class _MainPageState extends State<MainPage> {
                         var sepeda = snapshot.data!;
                         filteredList = sepeda.where(((bike) {
                           return bike.fields.fakultas.value ==
-                              _fakultasDb[index];
+                              convertFakultas(_listFakultas[index]);
                         })).toList();
                         bool alreadySaved =
                             favFakultas.contains(_listFakultas[index]);
@@ -474,7 +519,8 @@ class _MainPageState extends State<MainPage> {
                                     bike: filteredList,
                                     totalSepeda: totalSepeda[index],
                                     fakultas: _listFakultas[index],
-                                    fakultasDb: _fakultasDb[index],
+                                    fakultasDb:
+                                        convertFakultas(_listFakultas[index]),
                                     statusPinjam: statusPinjam)),
                           ),
                         );

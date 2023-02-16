@@ -9,7 +9,6 @@ class KembalikanSepeda {
   BuildContext context;
   final firebase = FirebaseAuth.instance;
   final firestore = FirebaseFirestore.instance;
-  bool statusPinjam = false;
   var data;
   Function setState;
   String currentUser;
@@ -97,6 +96,7 @@ class KembalikanSepeda {
                                 fakultasState = _fakultasDb[idx];
                               },
                             );
+                            print("fakultas ${fakultas}");
                           },
                         ),
                       ),
@@ -108,95 +108,124 @@ class KembalikanSepeda {
                   child: Align(
                     alignment: Alignment.bottomRight,
                     child: TextButton(
-                      child: Text(
-                        'Submit',
-                        style: Theme.of(context).textTheme.subtitle1,
-                      ),
-                      onPressed: () async {
-                        var batasWaktu = data['waktu_kembali'].toDate();
-                        var waktuKembali = DateTime.now();
-                        var selisihJam = batasWaktu.difference(waktuKembali);
-                        var selisihJamNegatif =
-                            selisihJam.toString().replaceAll(RegExp('-'), '');
+                        child: Text(
+                          'Kirim',
+                          style: Theme.of(context).textTheme.subtitle1,
+                        ),
+                        onPressed: fakultas == null
+                            ? () => showDialog(
+                                  context: context,
+                                  builder: (BuildContext context) {
+                                    return CustomDialog(
+                                      title: 'Pilih shelter terlebih dahulu!',
+                                      descriptions:
+                                          'Silahkan pilih salah satu shelter dimana anda mau mengembalikan sepeda yang anda pinjam.',
+                                      text: 'OK',
+                                    );
+                                  },
+                                )
+                            : () async {
+                                var batasWaktu = data['waktu_kembali'].toDate();
+                                var waktuKembali = DateTime.now();
+                                var selisihJam =
+                                    batasWaktu.difference(waktuKembali);
+                                var selisihJamNegatif = selisihJam
+                                    .toString()
+                                    .replaceAll(RegExp('-'), '');
 
-                        if (connectionStatus != ConnectivityResult.none) {
-                          status
-                              .doc(firebase.currentUser?.uid)
-                              .delete()
-                              .catchError((error) =>
-                                  print("Failed to return bike: $error"));
+                                if (connectionStatus !=
+                                    ConnectivityResult.none) {
+                                  try {
+                                    status
+                                        .doc(firebase.currentUser?.uid)
+                                        .delete()
+                                        .catchError((error) => print(
+                                            "Failed to return bike: $error"));
 
-                          firestore
-                              .collection('history_peminjaman')
-                              .doc(firebase.currentUser?.uid)
-                              .collection('user_history')
-                              .doc()
-                              .set(
-                            {
-                              'id_sepeda': data['id_sepeda'],
-                              'jenis_sepeda': data['jenis_sepeda'],
-                              'email_peminjam': data['email_peminjam'],
-                              'waktu_pinjam': data['waktu_pinjam'],
-                              'waktu_kembali': waktuKembali,
-                              'fakultas': data['fakultas']
-                            },
-                          );
+                                    firestore
+                                        .collection('history_peminjaman')
+                                        .doc(firebase.currentUser?.uid)
+                                        .collection('user_history')
+                                        .doc()
+                                        .set(
+                                      {
+                                        'id_sepeda': data['id_sepeda'],
+                                        'jenis_sepeda': data['jenis_sepeda'],
+                                        'email_peminjam':
+                                            data['email_peminjam'],
+                                        'waktu_pinjam': data['waktu_pinjam'],
+                                        'waktu_kembali': waktuKembali,
+                                        'fakultas_pinjam': data['fakultas'],
+                                        'fakultas_kembali': fakultas
+                                      },
+                                    );
 
-                          firestore
-                              .collection('data_sepeda')
-                              .doc('${data['id_sepeda']}')
-                              .update(
-                            {'status': 'Tersedia', 'fakultas': fakultasState},
-                          );
-                          if (selisihJam.isNegative) {
-                            users.doc(currentUser).update(
-                              {
-                                'status': 0,
-                                'sisa_jam': '0:00:00',
-                                'peminjaman_terakhir': waktuKembali,
-                                'denda_pinjam': selisihJamNegatif
-                              },
-                            );
-                          } else {
-                            users.doc(currentUser).update(
-                              {
-                                'status': 0,
-                                'sisa_jam': selisihJam.toString(),
-                                'peminjaman_terakhir': waktuKembali
-                              },
-                            );
-                          }
-                          setState(() {
-                            statusPinjam = false;
-                          });
-                          Navigator.of(context).pop();
-
-                          showDialog(
-                            context: context,
-                            builder: (BuildContext context) {
-                              return CustomDialog(
-                                title: 'Sukses!',
-                                descriptions:
-                                    'Berhasil mengembalikan sepeda, peminjaman sepeda anda selesai.',
-                                text: 'OK',
-                              );
-                            },
-                          );
-                        } else {
-                          return showDialog(
-                            context: context,
-                            builder: (BuildContext context) {
-                              return CustomDialog(
-                                title: 'Pengembalian Gagal',
-                                descriptions:
-                                    'Error, silahkan coba lagi beberapa saat kemudian!',
-                                text: 'OK',
-                              );
-                            },
-                          );
-                        }
-                      },
-                    ),
+                                    firestore
+                                        .collection('data_sepeda')
+                                        .doc('${data['id_sepeda']}')
+                                        .update(
+                                      {
+                                        'status': 'Tersedia',
+                                        'fakultas': fakultasState
+                                      },
+                                    );
+                                    if (selisihJam.isNegative) {
+                                      users.doc(currentUser).update(
+                                        {
+                                          'status': 0,
+                                          'sisa_jam': '0:00:00',
+                                          'peminjaman_terakhir': waktuKembali,
+                                          'denda_pinjam': selisihJamNegatif
+                                        },
+                                      );
+                                    } else {
+                                      users.doc(currentUser).update(
+                                        {
+                                          'status': 0,
+                                          'sisa_jam': selisihJam.toString(),
+                                          'peminjaman_terakhir': waktuKembali
+                                        },
+                                      );
+                                    }
+                                    Navigator.of(context).pop();
+                                    return showDialog(
+                                      context: context,
+                                      builder: (BuildContext context) {
+                                        return CustomDialog(
+                                          title: 'Sukses!',
+                                          descriptions:
+                                              'Berhasil mengembalikan sepeda, peminjaman sepeda anda selesai.',
+                                          text: 'OK',
+                                        );
+                                      },
+                                    );
+                                  } catch (e) {
+                                    return showDialog(
+                                      context: context,
+                                      builder: (BuildContext context) {
+                                        return CustomDialog(
+                                          title: 'Pengembalian Gagal',
+                                          descriptions:
+                                              'Error, silahkan coba lagi beberapa saat kemudian!',
+                                          text: 'OK',
+                                        );
+                                      },
+                                    );
+                                  }
+                                } else {
+                                  return showDialog(
+                                    context: context,
+                                    builder: (BuildContext context) {
+                                      return CustomDialog(
+                                        title: 'Pengembalian Gagal',
+                                        descriptions:
+                                            'Error, silahkan cek koneksi anda dan coba lagi beberapa saat kemudian!',
+                                        text: 'OK',
+                                      );
+                                    },
+                                  );
+                                }
+                              }),
                   ),
                 )
               ],

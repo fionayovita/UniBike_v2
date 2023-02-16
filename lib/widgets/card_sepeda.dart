@@ -98,12 +98,8 @@ class _CardSepedaState extends State<CardSepeda> {
   }
 
   Widget _content(BuildContext context) {
-    String emailUser = firebase.currentUser!.email.toString();
     bool isAvailable = widget.bike.fields.status.value == 'Tersedia' ||
         widget.bike.fields.status.value == 'tersedia';
-    String docId = widget.bike.name.replaceAll(
-        'projects/unibike-13780/databases/(default)/documents/data_sepeda/',
-        '');
 
     return InkWell(
       onTap: () {
@@ -128,9 +124,8 @@ class _CardSepedaState extends State<CardSepeda> {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: <Widget>[
             Expanded(
-              child: Image.network(widget.bike.fields.fotoSepeda.value!,
-                  fit: BoxFit.cover),
-            ),
+                child: Image.network(widget.bike.fields.fotoSepeda.value!,
+                    fit: BoxFit.scaleDown)),
             Padding(
               padding: const EdgeInsets.only(top: 3.0, left: 10, right: 10),
               child: Text(
