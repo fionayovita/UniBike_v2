@@ -14,11 +14,12 @@ import 'package:unibike/widgets/bottom_sheet.dart';
 import 'package:unibike/widgets/card_sepeda.dart';
 
 class ListBikeArgs {
-  final List<ListSepeda> bike;
+  final List bike;
   final String? fakultas;
   int statusPinjam = 0;
   int totalSepeda;
   final String? fakultasDb;
+  bool isFiltered;
 
   ListBikeArgs({
     required this.bike,
@@ -26,23 +27,27 @@ class ListBikeArgs {
     required this.statusPinjam,
     required this.fakultasDb,
     required this.totalSepeda,
+    required this.isFiltered,
   });
 }
 
 class ListBikePage extends StatefulWidget {
   static const routeName = 'list_bike_page';
-  final List<ListSepeda> bike;
+  final List bike;
   final String? fakultas;
   int statusPinjam;
   int totalSepeda;
   final String? fakultasDb;
+  bool isFiltered;
 
-  ListBikePage(
-      {required this.bike,
-      required this.totalSepeda,
-      required this.fakultas,
-      required this.statusPinjam,
-      required this.fakultasDb});
+  ListBikePage({
+    required this.bike,
+    required this.totalSepeda,
+    required this.fakultas,
+    required this.statusPinjam,
+    required this.fakultasDb,
+    required this.isFiltered,
+  });
 
   @override
   _ListBikePageState createState() => _ListBikePageState();
@@ -61,6 +66,7 @@ class _ListBikePageState extends State<ListBikePage> {
   bool _isLoading = true;
   var dataUser;
   bool isOnDebt = false;
+  bool isFiltered = false;
 
   ConnectivityResult _connectionStatus = ConnectivityResult.none;
   final Connectivity _connectivity = Connectivity();
@@ -173,7 +179,14 @@ class _ListBikePageState extends State<ListBikePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: whiteBackground,
-      appBar: CustomAppBar(text: 'Shelter Fakultas ${widget.fakultas}'),
+      appBar: CustomAppBar(
+          text: 'Shelter Fakultas ${widget.fakultas}',
+          listBike: true,
+          onPressedFilter: () {
+            setState(() {
+              isFiltered = !isFiltered;
+            });
+          }),
       body: RefreshIndicator(
         child: SafeArea(
           child: SingleChildScrollView(
@@ -182,8 +195,8 @@ class _ListBikePageState extends State<ListBikePage> {
               builder: (BuildContext context, BoxConstraints constraints) {
                 if (constraints.maxWidth <= 700) {
                   return Padding(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 17.0, vertical: 20.0),
+                      padding: const EdgeInsets.only(
+                          left: 17.0, right: 17.0, top: 0.0, bottom: 20.0),
                       child: _content(context, 2));
                 } else if (constraints.maxWidth <= 1100) {
                   return Padding(
@@ -259,15 +272,27 @@ class _ListBikePageState extends State<ListBikePage> {
                 var filteredList = snapshot.data!.where(((bike) {
                   return bike.fields.fakultas.value == widget.fakultasDb;
                 })).toList();
-                var sortTersedia = filteredList.where(((bike) {
+                List<ListSepeda> filteredListFromMain = [];
+                widget.bike.forEach((spd) {
+                  var filteredJenisSepeda = filteredList.where(((bike) {
+                    return bike.fields.kodeSepeda.value == spd;
+                  })).toList();
+                  filteredListFromMain.addAll(filteredJenisSepeda);
+                });
+
+                List<ListSepeda> usedList =
+                    !isFiltered ? filteredListFromMain : filteredList;
+
+                List<ListSepeda> sortTersedia = usedList.where(((bike) {
                   return bike.fields.status.value == "Tersedia" ||
                       bike.fields.status.value == "tersedia";
                 })).toList();
-                var sortTidakTersedia = filteredList.where(((bike) {
+                List<ListSepeda> sortTidakTersedia = usedList.where(((bike) {
                   return bike.fields.status.value == "Tidak Tersedia" ||
                       bike.fields.status.value == "tidak tersedia" ||
                       bike.fields.status.value == "Tidak tersedia";
                 })).toList();
+
                 var newList = sortTersedia + sortTidakTersedia;
 
                 return filteredList.length == 0

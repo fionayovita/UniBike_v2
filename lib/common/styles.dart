@@ -12,6 +12,8 @@ Color inputFillColor = Color.fromARGB(93, 26, 39, 85);
 Color greyButton = Color(0xFF1E1C24);
 Color greyOutline = Color(0xFF3B3A42);
 Color underline = Color.fromARGB(169, 142, 142, 142);
+Color greyBg = Color(0xFFCAD0DC);
+Color mediumGrey = Color(0xFFA7AAAF);
 
 final TextTheme myTextTheme = TextTheme(
   headline1: GoogleFonts.poppins(

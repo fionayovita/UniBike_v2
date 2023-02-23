@@ -32,9 +32,11 @@ class MyApp extends StatelessWidget {
             create: (_) => BikeProvider(apiService: ApiService())),
       ],
       child: MaterialApp(
-          theme: themeData,
-          initialRoute: SplashScreen.routeName,
-          onGenerateRoute: RouterHelper.generateRoute),
+        theme: themeData,
+        initialRoute: SplashScreen.routeName,
+        onGenerateRoute: RouterHelper.generateRoute,
+        debugShowCheckedModeBanner: false,
+      ),
     );
   }
 }

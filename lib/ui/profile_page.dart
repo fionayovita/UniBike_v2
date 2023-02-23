@@ -5,6 +5,7 @@ import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:unibike/common/styles.dart';
+import 'package:unibike/ui/history_peminjaman_page.dart';
 import 'package:unibike/ui/login_page.dart';
 import 'package:unibike/widgets/appbar.dart';
 import 'package:unibike/widgets/confirmation_dialog.dart';
@@ -29,7 +30,8 @@ class _ProfilePageState extends State<ProfilePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: CustomAppBar(text: "Profile"),
+      appBar: CustomAppBar(
+          text: "Profile", listBike: false, onPressedFilter: () {}),
       body: SafeArea(
         child: SingleChildScrollView(
           child: LayoutBuilder(
@@ -265,6 +267,57 @@ class _ProfilePageState extends State<ProfilePage> {
                       '${data['fakultas']}',
                       style: Theme.of(context).textTheme.headline5,
                     ),
+                    SizedBox(height: 8),
+                    Text(
+                      'Sisa Waktu Peminjaman: ',
+                      style: TextStyle(
+                        fontSize: 15.0,
+                        color: greyOutline,
+                      ),
+                    ),
+                    Text(
+                      '${data['sisa_jam'].split(':')[0]} Jam ${data['sisa_jam'].split(':')[1]} Menit',
+                      style: Theme.of(context).textTheme.headline5,
+                    ),
+                    data.containsKey('denda_pinjam')
+                        ? Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              SizedBox(height: 8),
+                              Text(
+                                'Denda Waktu Peminjaman: ',
+                                style: TextStyle(
+                                  fontSize: 15.0,
+                                  color: greyOutline,
+                                ),
+                              ),
+                              Text(
+                                '${data['denda_pinjam'].split(':')[0]} Jam ${data['denda_pinjam'].split(':')[1]} Menit',
+                                style: Theme.of(context).textTheme.headline5,
+                              ),
+                            ],
+                          )
+                        : Container(),
+                    TextButton(
+                      style: TextButton.styleFrom(
+                          padding: EdgeInsets.all(0),
+                          foregroundColor: secondaryColor,
+                          textStyle: Theme.of(context).textTheme.headline6),
+                      onPressed: () {
+                        Navigator.pushNamed(
+                            context, HistoryPeminjamanPage.routeName);
+                      },
+                      child: Row(
+                        children: [
+                          Text('Lihat Riwayat Peminjaman'),
+                          Icon(
+                            Icons.arrow_forward_rounded,
+                            size: 30,
+                            color: secondaryColor,
+                          )
+                        ],
+                      ),
+                    ),
                   ],
                 ),
               ),
@@ -374,7 +427,6 @@ class _ProfilePageState extends State<ProfilePage> {
           .child('$currentUser')
           .putFile(_image);
 
-      print('current user: $currentUser');
       setState(() {
         loadImage();
       });
@@ -385,19 +437,19 @@ class _ProfilePageState extends State<ProfilePage> {
 
   Future<String>? loadImage() async {
     String currentUser = firebase.currentUser!.uid.toString();
-    var url = null ??
+    var url =
         'https://firebasestorage.googleapis.com/v0/b/unibike-13780.appspot.com/o/profile_picture%2Favatar.png?alt=media&token=ee107873-773f-4683-b2f7-572c16e1a494';
-    try {
-      Reference ref = await FirebaseStorage.instance
-          .ref()
-          .child('profile_picture')
-          .child('$currentUser');
+    // try {
+    //   Reference ref = await FirebaseStorage.instance
+    //       .ref()
+    //       .child('profile_picture')
+    //       .child('$currentUser');
 
-      url = await ref.getDownloadURL();
-    } on FirebaseException catch (e) {
-      Text('error loading picture');
-      print(e);
-    }
+    //   url = await ref.getDownloadURL();
+    // } on FirebaseException catch (e) {
+    //   Text('error loading picture');
+    //   print(e);
+    // }
     return url;
   }
 

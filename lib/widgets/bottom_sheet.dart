@@ -9,7 +9,6 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:unibike/common/styles.dart';
 import 'package:unibike/function/kembalikan_sepeda.dart';
 import 'package:unibike/ui/status_pinjam_page.dart';
-import 'package:unibike/widgets/custom_dialog.dart';
 
 class BottomSheetWidget extends StatefulWidget {
   String fakultasState = '';
@@ -32,18 +31,9 @@ class _BottomSheetState extends State<BottomSheetWidget> {
       FirebaseFirestore.instance.collection('users');
 
   String? fakultas;
-  List _listFakultas = [
-    "Teknik",
-    "MIPA",
-    "Ekonomi",
-    "Kedokteran",
-    "Pertanian",
-    "Keguruan dan Ilmu Pendidikan",
-    "Ilmu Sosial dan Pemerintahan",
-    "Hukum"
-  ];
+
   late final StreamSubscription<DocumentSnapshot> _subscription;
-  List _fakultasDb = ["ft", "fmipa", "feb", "fk", "fp", "fkip", "fisip", "fh"];
+
   Timer? countdownTimer;
   var myDuration = Duration(seconds: 0);
   var sisaJamUpdated;
@@ -172,7 +162,6 @@ class _BottomSheetState extends State<BottomSheetWidget> {
     final hours = strDigits(myDuration.inHours.remainder(24));
     final minutes = strDigits(myDuration.inMinutes.remainder(60));
     final seconds = strDigits(myDuration.inSeconds.remainder(60));
-    print("width ${MediaQuery.of(context).size.width}");
 
     String currentUser = firebase.currentUser!.uid.toString();
     return GestureDetector(

@@ -9,7 +9,6 @@ import 'package:intl/intl.dart';
 import 'package:unibike/common/styles.dart';
 import 'package:unibike/function/kembalikan_sepeda.dart';
 import 'package:unibike/widgets/appbar.dart';
-import 'package:unibike/widgets/custom_dialog.dart';
 
 class StatusPinjamPage extends StatefulWidget {
   static const routeName = 'status_pinjam_page';
@@ -31,18 +30,6 @@ class _StatusPinjamPageState extends State<StatusPinjamPage> {
       FirebaseFirestore.instance.collection('users');
 
   String? fakultas;
-  List _listFakultas = [
-    "Teknik",
-    "MIPA",
-    "Ekonomi",
-    "Kedokteran",
-    "Pertanian",
-    "Keguruan dan Ilmu Pendidikan",
-    "Ilmu Sosial dan Pemerintahan",
-    "Hukum"
-  ];
-
-  List _fakultasDb = ["ft", "fmipa", "feb", "fk", "fp", "fkip", "fisip", "fh"];
 
   ConnectivityResult _connectionStatus = ConnectivityResult.none;
   final Connectivity _connectivity = Connectivity();
@@ -90,7 +77,8 @@ class _StatusPinjamPageState extends State<StatusPinjamPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: whiteBackground,
-      appBar: CustomAppBar(text: "Status Peminjaman"),
+      appBar: CustomAppBar(
+          text: "Status Peminjaman", listBike: false, onPressedFilter: () {}),
       body: SafeArea(
         child: Center(
           child: SingleChildScrollView(

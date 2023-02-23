@@ -35,6 +35,7 @@ class RouterHelper {
           ListBikeArgs argument = args;
           return ListBikePage(
             bike: argument.bike,
+            isFiltered: argument.isFiltered,
             fakultas: argument.fakultas as String,
             fakultasDb: argument.fakultasDb as String,
             totalSepeda: argument.totalSepeda,

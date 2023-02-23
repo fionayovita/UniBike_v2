@@ -32,15 +32,15 @@ class ListSepeda {
 }
 
 class Sepeda {
-  Sepeda({
-    required this.jenisSepeda,
-    required this.status,
-    required this.tahun,
-    required this.merkSepeda,
-    required this.deskripsi,
-    required this.fakultas,
-    required this.fotoSepeda,
-  });
+  Sepeda(
+      {required this.jenisSepeda,
+      required this.status,
+      required this.tahun,
+      required this.merkSepeda,
+      required this.deskripsi,
+      required this.fakultas,
+      required this.fotoSepeda,
+      required this.kodeSepeda});
 
   Value jenisSepeda;
   Value status;
@@ -49,6 +49,7 @@ class Sepeda {
   Value deskripsi;
   Value fakultas;
   Value fotoSepeda;
+  Value kodeSepeda;
 
   factory Sepeda.fromJson(Map<String, dynamic> json) => Sepeda(
       jenisSepeda: Value.fromJson(json['jenis_sepeda']),
@@ -57,7 +58,8 @@ class Sepeda {
       merkSepeda: Value.fromJson(json['merk_sepeda']),
       fakultas: Value.fromJson(json['fakultas']),
       deskripsi: Value.fromJson(json['deskripsi']),
-      fotoSepeda: Value.fromJson(json['foto_sepeda']));
+      fotoSepeda: Value.fromJson(json['foto_sepeda']),
+      kodeSepeda: Value.fromJson(json['kode_sepeda']));
 
   Map<String, dynamic> toJson() {
     final Map<String, dynamic> data = new Map<String, dynamic>();
@@ -68,6 +70,7 @@ class Sepeda {
     data['merk_sepeda'] = this.merkSepeda;
     data['deskripsi'] = this.deskripsi;
     data['foto_sepeda'] = this.fotoSepeda;
+    data['kode_sepeda'] = this.kodeSepeda;
     return data;
   }
 }

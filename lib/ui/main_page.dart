@@ -3,6 +3,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:unibike/api/api_service.dart';
 import 'package:unibike/common/styles.dart';
 import 'package:unibike/model/bike_model2.dart';
@@ -40,10 +41,14 @@ class _MainPageState extends State<MainPage> {
     "Hukum"
   ];
 
+  List _listSepeda = [];
+
+  List<ListSepeda> newfilteredList = [];
   List<dynamic> favFakultas = [];
   List<ListSepeda> filteredList = [];
   int statusPinjam = 0;
   bool isOnDebt = false;
+  bool isFiltered = false;
 
   ConnectivityResult _connectionStatus = ConnectivityResult.none;
   final Connectivity _connectivity = Connectivity();
@@ -181,7 +186,6 @@ class _MainPageState extends State<MainPage> {
                         (error) => print("Failed to return bike: $error"));
               }
             }
-
             List? favIsEmpty() {
               return _listFakultas.where((e) {
                 return favFakultas.contains(e);
@@ -228,19 +232,41 @@ class _MainPageState extends State<MainPage> {
                     ),
                   ),
                   actions: <Widget>[
-                    Padding(
-                      padding: EdgeInsets.only(right: 15),
-                      child: GestureDetector(
-                        onTap: () {
-                          Navigator.pushNamed(
-                              context, HistoryPeminjamanPage.routeName);
-                        },
-                        child: Icon(
-                          Icons.history,
+                    Container(
+                        padding: EdgeInsets.symmetric(horizontal: 8),
+                        margin:
+                            EdgeInsets.symmetric(vertical: 10, horizontal: 5),
+                        decoration: BoxDecoration(
                           color: lightBlue,
+                          borderRadius: BorderRadius.circular(5),
                         ),
-                      ),
-                    ),
+                        child: Center(
+                            child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          children: [
+                            Text(
+                              "${statusPinjam == 1 ? 'Sedang Meminjam' : (statusPinjam == 0 && isOnDebt) ? "Denda Pinjam" : dataSnapshot['sisa_jam'] == "0:00:00" ? "Waktu Habis" : dataSnapshot['sisa_jam'].split('.')[0]}",
+                              textAlign: TextAlign.center,
+                              style: GoogleFonts.poppins(
+                                  textStyle: TextStyle(
+                                      color: primaryColor,
+                                      fontSize: 13,
+                                      fontWeight: FontWeight.w500)),
+                            ),
+                            SizedBox(width: 5),
+                            CircleAvatar(
+                              maxRadius: 8,
+                              backgroundColor: statusPinjam == 1
+                                  ? secondaryColor
+                                  : (statusPinjam == 0 && isOnDebt)
+                                      ? Colors.red
+                                      : (dataSnapshot['sisa_jam'] == "0:00:00")
+                                          ? Colors.grey
+                                          : Colors.green,
+                            )
+                          ],
+                        ))),
                     Padding(
                       padding: EdgeInsets.only(right: 15),
                       child: GestureDetector(
@@ -259,32 +285,34 @@ class _MainPageState extends State<MainPage> {
                   onRefresh: () async {
                     onRefresh();
                   },
-                  child: SingleChildScrollView(
-                    physics: const AlwaysScrollableScrollPhysics(),
-                    child: SafeArea(
-                      child: LayoutBuilder(
-                        builder:
-                            (BuildContext context, BoxConstraints constraints) {
-                          if (constraints.maxWidth <= 700) {
-                            return Padding(
-                                padding: const EdgeInsets.symmetric(
-                                    horizontal: 17.0, vertical: 20.0),
-                                child: _content(context));
-                          } else if (constraints.maxWidth <= 1100) {
-                            return Padding(
-                                padding: const EdgeInsets.symmetric(
-                                    horizontal: 80.0, vertical: 20.0),
-                                child: _content(context));
-                          } else {
-                            return Padding(
-                                padding: const EdgeInsets.symmetric(
-                                    horizontal: 550.0, vertical: 20.0),
-                                child: _content(context));
-                          }
-                        },
-                      ),
-                    ),
-                  ),
+                  child: Scrollbar(
+                      thickness: 5,
+                      child: SingleChildScrollView(
+                        physics: const AlwaysScrollableScrollPhysics(),
+                        child: SafeArea(
+                          child: LayoutBuilder(
+                            builder: (BuildContext context,
+                                BoxConstraints constraints) {
+                              if (constraints.maxWidth <= 700) {
+                                return Padding(
+                                    padding: const EdgeInsets.symmetric(
+                                        horizontal: 17.0, vertical: 20.0),
+                                    child: _content(context));
+                              } else if (constraints.maxWidth <= 1100) {
+                                return Padding(
+                                    padding: const EdgeInsets.symmetric(
+                                        horizontal: 80.0, vertical: 20.0),
+                                    child: _content(context));
+                              } else {
+                                return Padding(
+                                    padding: const EdgeInsets.symmetric(
+                                        horizontal: 550.0, vertical: 20.0),
+                                    child: _content(context));
+                              }
+                            },
+                          ),
+                        ),
+                      )),
                 ),
                 bottomSheet: (statusPinjam != 0)
                     ? BottomSheetWidget(onPressedPinjam: ((bool isPressed) {
@@ -298,7 +326,6 @@ class _MainPageState extends State<MainPage> {
 
   Widget _content(BuildContext context) {
     List totalSepeda = [];
-
     return FutureBuilder<List<ListSepeda>>(
         future: dbSepeda,
         builder: (context, snapshot) {
@@ -343,190 +370,212 @@ class _MainPageState extends State<MainPage> {
             ));
           } else if (snapshot.hasData &&
               snapshot.connectionState == ConnectionState.done) {
+            var sepeda = snapshot.data!;
             return SingleChildScrollView(
               child: Container(
-                margin: EdgeInsets.only(bottom: (statusPinjam != 0) ? 85.0 : 0),
-                height: (statusPinjam != 0)
-                    ? (MediaQuery.of(context).size.height * 0.78)
-                    : (MediaQuery.of(context).size.height * 0.85),
+                margin: EdgeInsets.only(bottom: (statusPinjam != 0) ? 70.0 : 0),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   mainAxisSize: MainAxisSize.min,
                   children: <Widget>[
-                    statusPinjam == 0 && dataSnapshot['sisa_jam'] != '4:00:00'
-                        ? Container(
-                            width: double.infinity,
-                            padding: const EdgeInsets.symmetric(
-                                vertical: 10, horizontal: 17),
-                            decoration: BoxDecoration(
-                              image: const DecorationImage(
-                                image: AssetImage(
-                                  'assets/gradientBg.png',
-                                ),
-                                fit: BoxFit.cover,
-                              ),
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                dataSnapshot['sisa_jam'] == '0:00:00'
-                                    ? Text(
-                                        "Anda tidak memiliki sisa waktu pinjam hari ini",
-                                        style: Theme.of(context)
-                                            .textTheme
-                                            .headline6,
-                                      )
-                                    : Column(
-                                        crossAxisAlignment:
-                                            CrossAxisAlignment.start,
-                                        children: [
-                                          Text(
-                                            "Sisa waktu peminjaman hari ini:",
-                                            style: Theme.of(context)
-                                                .textTheme
-                                                .subtitle2,
-                                          ),
-                                          SizedBox(height: 3),
-                                          Text(
-                                            "${dataSnapshot['sisa_jam'].split(':')[0]} Jam ${dataSnapshot['sisa_jam'].split(':')[1]} Menit",
-                                            style: Theme.of(context)
-                                                .textTheme
-                                                .headline6,
-                                          ),
-                                          SizedBox(height: 7),
-                                        ],
-                                      ),
-                                isOnDebt
-                                    ? Column(
-                                        crossAxisAlignment:
-                                            CrossAxisAlignment.start,
-                                        children: [
-                                          Text(
-                                            "Denda waktu peminjaman anda:",
-                                            style: Theme.of(context)
-                                                .textTheme
-                                                .subtitle2,
-                                          ),
-                                          SizedBox(height: 3),
-                                          Text(
-                                            "${dataSnapshot['denda_pinjam'].split(':')[0]} Jam ${dataSnapshot['denda_pinjam'].split(':')[1]} Menit ${dataSnapshot['denda_pinjam'].split(':')[2].split('.')[0]} detik",
-                                            style: Theme.of(context)
-                                                .textTheme
-                                                .headline6,
-                                          ),
-                                        ],
-                                      )
-                                    : Text(
-                                        "Anda tidak memiliki denda waktu peminjaman",
-                                        style: Theme.of(context)
-                                            .textTheme
-                                            .headline6,
-                                      )
-                              ],
-                            ),
-                          )
-                        : SizedBox(height: 0),
-                    SizedBox(height: statusPinjam == 0 ? 17 : 0),
+                    // SizedBox(
+                    //     height: dataSnapshot['sisa_jam'] != '4:00:00' ? 10 : 0),
                     Text(
                       "Pilih shelter peminjaman",
                       style: Theme.of(context).textTheme.headline5,
                     ),
-                    SizedBox(height: 5),
+                    SizedBox(height: 3),
                     Text(
                       "Dimana kamu mau meminjam sepeda?",
                       style: Theme.of(context).textTheme.subtitle1,
                     ),
-                    SizedBox(height: 20.0),
-                    Expanded(
-                        child: ListView.builder(
-                      shrinkWrap: true,
-                      physics: ScrollPhysics(),
-                      itemCount: _listFakultas.length,
-                      itemBuilder: (context, index) {
-                        var sepeda = snapshot.data!;
-                        filteredList = sepeda.where(((bike) {
-                          return bike.fields.fakultas.value ==
-                              convertFakultas(_listFakultas[index]);
-                        })).toList();
-                        bool alreadySaved =
-                            favFakultas.contains(_listFakultas[index]);
-                        totalSepeda.add(filteredList.length);
+                    SizedBox(height: 6.0),
+                    SizedBox(
+                      height: 65,
+                      child: ListView.builder(
+                          scrollDirection: Axis.horizontal,
+                          shrinkWrap: true,
+                          physics: ScrollPhysics(),
+                          itemCount: 3,
+                          itemBuilder: (BuildContext context, int index) {
+                            List listSepeda = [
+                              "Sepeda Gunung",
+                              "Sepeda Fixie",
+                              "Sepeda Lipat"
+                            ];
+                            return Container(
+                                padding:
+                                    const EdgeInsets.symmetric(horizontal: 2),
+                                margin: const EdgeInsets.all(0),
+                                width: 150,
+                                child: Card(
+                                  color: _listSepeda.contains(listSepeda[index])
+                                      ? secondaryColor
+                                      : lightBlue,
+                                  shadowColor: greyOutline,
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.all(
+                                      Radius.circular(10.0),
+                                    ),
+                                  ),
+                                  elevation: 3,
+                                  child: ListTile(
+                                      onTap: () {
+                                        if (_listSepeda
+                                            .contains(listSepeda[index])) {
+                                          setState(() {
+                                            _listSepeda
+                                                .remove(listSepeda[index]);
+                                            var filteredJenisSepeda =
+                                                sepeda.where(((bike) {
+                                              return bike.fields.jenisSepeda
+                                                      .value ==
+                                                  listSepeda[index];
+                                            })).toList();
+                                            newfilteredList = newfilteredList
+                                                .where((i) =>
+                                                    !filteredJenisSepeda
+                                                        .contains(i))
+                                                .toList();
+                                          });
+                                        } else {
+                                          setState(() {
+                                            _listSepeda.add(listSepeda[index]);
+                                            newfilteredList = [];
+                                            _listSepeda.forEach((spd) {
+                                              var filteredJenisSepeda =
+                                                  sepeda.where(((bike) {
+                                                return bike.fields.jenisSepeda
+                                                        .value ==
+                                                    spd;
+                                              })).toList();
+                                              newfilteredList
+                                                  .addAll(filteredJenisSepeda);
+                                            });
+                                          });
+                                        }
+                                      },
+                                      title: Text(
+                                        listSepeda[index],
+                                        textAlign: TextAlign.center,
+                                        style: GoogleFonts.poppins(
+                                            textStyle: TextStyle(
+                                                color: primaryColor,
+                                                fontSize: 15,
+                                                fontWeight: FontWeight.w600)),
+                                      )),
+                                ));
+                          }),
+                    ),
+                    SizedBox(height: 8.0),
+                    isFiltered
+                        ? CircularProgressIndicator()
+                        : ListView.builder(
+                            shrinkWrap: true,
+                            physics: ScrollPhysics(),
+                            itemCount: _listFakultas.length,
+                            itemBuilder: (context, index) {
+                              if (_listSepeda.length == 0) {
+                                filteredList = sepeda.where(((bike) {
+                                  return bike.fields.fakultas.value ==
+                                      convertFakultas(_listFakultas[index]);
+                                })).toList();
+                                totalSepeda.add(filteredList.length);
+                              } else {
+                                filteredList = newfilteredList.where(((bike) {
+                                  return bike.fields.fakultas.value ==
+                                      convertFakultas(_listFakultas[index]);
+                                })).toList();
+                                totalSepeda.add(filteredList.length);
+                              }
+                              List fixedList = [];
+                              filteredList.forEach((spd) {
+                                fixedList.add(spd.fields.kodeSepeda.value);
+                              });
 
-                        return Card(
-                          color: mediumBlue,
-                          margin: const EdgeInsets.symmetric(vertical: 6),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.all(
-                              Radius.circular(16.0),
-                            ),
-                          ),
-                          elevation: 6,
-                          child: ListTile(
-                            title: Text('Fakultas ${_listFakultas[index]}',
-                                style: Theme.of(context).textTheme.headline6),
-                            trailing: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                CircleAvatar(
-                                  backgroundColor: primaryColor,
-                                  maxRadius: 15,
-                                  child: Text('${totalSepeda[index]}',
+                              bool alreadySaved =
+                                  favFakultas.contains(_listFakultas[index]);
+
+                              return Card(
+                                color: mediumBlue,
+                                margin:
+                                    const EdgeInsets.symmetric(vertical: 4.5),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.all(
+                                    Radius.circular(16.0),
+                                  ),
+                                ),
+                                elevation: 6,
+                                child: ListTile(
+                                  title: Text(
+                                      'Fakultas ${_listFakultas[index]}',
                                       style: Theme.of(context)
                                           .textTheme
-                                          .subtitle1),
+                                          .headline6),
+                                  trailing: Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      CircleAvatar(
+                                        backgroundColor: primaryColor,
+                                        maxRadius: 15,
+                                        child: Text('${totalSepeda[index]}',
+                                            style: Theme.of(context)
+                                                .textTheme
+                                                .subtitle1),
+                                      ),
+                                      SizedBox(width: 5),
+                                      IconButton(
+                                        icon: Icon(
+                                            !alreadySaved
+                                                ? Icons.star_border
+                                                : Icons.star,
+                                            color: !alreadySaved
+                                                ? whiteBackground
+                                                : secondaryColor,
+                                            size: 30),
+                                        onPressed: () async {
+                                          String currentUser = firebase
+                                              .currentUser!.uid
+                                              .toString();
+                                          if (!alreadySaved) {
+                                            favFakultas
+                                                .add(_listFakultas[index]);
+                                            firestore
+                                                .collection('users')
+                                                .doc('${currentUser}')
+                                                .update(
+                                              {'favorite': favFakultas},
+                                            );
+                                          } else {
+                                            favFakultas.removeWhere((fakultas) {
+                                              return fakultas ==
+                                                  "${_listFakultas[index]}";
+                                            });
+                                            firestore
+                                                .collection('users')
+                                                .doc('${currentUser}')
+                                                .update(
+                                              {'favorite': favFakultas},
+                                            );
+                                          }
+                                        },
+                                      )
+                                    ],
+                                  ),
+                                  onTap: () => Navigator.pushNamed(
+                                      context, ListBikePage.routeName,
+                                      arguments: ListBikeArgs(
+                                          bike: fixedList,
+                                          isFiltered: _listSepeda.length != 0,
+                                          totalSepeda: totalSepeda[index],
+                                          fakultas: _listFakultas[index],
+                                          fakultasDb: convertFakultas(
+                                              _listFakultas[index]),
+                                          statusPinjam: statusPinjam)),
                                 ),
-                                SizedBox(width: 5),
-                                IconButton(
-                                  icon: Icon(
-                                      !alreadySaved
-                                          ? Icons.star_border
-                                          : Icons.star,
-                                      color: !alreadySaved
-                                          ? whiteBackground
-                                          : secondaryColor,
-                                      size: 30),
-                                  onPressed: () async {
-                                    String currentUser =
-                                        firebase.currentUser!.uid.toString();
-                                    if (!alreadySaved) {
-                                      favFakultas.add(_listFakultas[index]);
-                                      firestore
-                                          .collection('users')
-                                          .doc('${currentUser}')
-                                          .update(
-                                        {'favorite': favFakultas},
-                                      );
-                                    } else {
-                                      favFakultas.removeWhere((fakultas) {
-                                        return fakultas ==
-                                            "${_listFakultas[index]}";
-                                      });
-                                      firestore
-                                          .collection('users')
-                                          .doc('${currentUser}')
-                                          .update(
-                                        {'favorite': favFakultas},
-                                      );
-                                    }
-                                  },
-                                )
-                              ],
-                            ),
-                            onTap: () => Navigator.pushNamed(
-                                context, ListBikePage.routeName,
-                                arguments: ListBikeArgs(
-                                    bike: filteredList,
-                                    totalSepeda: totalSepeda[index],
-                                    fakultas: _listFakultas[index],
-                                    fakultasDb:
-                                        convertFakultas(_listFakultas[index]),
-                                    statusPinjam: statusPinjam)),
+                              );
+                            },
                           ),
-                        );
-                      },
-                    )),
-                    SizedBox(height: 15.0),
                   ],
                 ),
               ),

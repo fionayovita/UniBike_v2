@@ -53,7 +53,8 @@ class _HistoryPeminjamanPageState extends State<HistoryPeminjamanPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: CustomAppBar(text: "Riwayat Peminjaman"),
+      appBar: CustomAppBar(
+          text: "Riwayat Peminjaman", listBike: false, onPressedFilter: () {}),
       body: SafeArea(
         child: Center(
           child: LayoutBuilder(
@@ -90,7 +91,7 @@ class _HistoryPeminjamanPageState extends State<HistoryPeminjamanPage> {
                   stream: history
                       .doc(firebase.currentUser?.uid)
                       .collection('user_history')
-                      .orderBy('waktu_pinjam', descending: false)
+                      .orderBy('waktu_pinjam', descending: true)
                       .snapshots(),
                   builder: (context, snapshot) {
                     if (snapshot.connectionState == ConnectionState.waiting) {

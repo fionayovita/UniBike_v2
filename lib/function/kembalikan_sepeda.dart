@@ -96,7 +96,6 @@ class KembalikanSepeda {
                                 fakultasState = _fakultasDb[idx];
                               },
                             );
-                            print("fakultas ${fakultas}");
                           },
                         ),
                       ),
