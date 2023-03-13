@@ -341,7 +341,7 @@ class _MainPageState extends State<MainPage> {
                     height: 250,
                   ),
                   Text(
-                    "Terjadi error. Silahkan muat ulang halaman.",
+                    "Terjadi error. Silahkan muat ulang halaman dan cek koneksi anda.",
                     style: Theme.of(context).textTheme.headline5,
                     textAlign: TextAlign.center,
                   ),
@@ -362,7 +362,7 @@ class _MainPageState extends State<MainPage> {
                   height: 250,
                 ),
                 Text(
-                  "Tidak ada koneksi. Silahkan muat ulang halaman.",
+                  "Tidak ada koneksi. Silahkan muat ulang halaman dan cek koneksi anda.",
                   style: Theme.of(context).textTheme.headline5,
                   textAlign: TextAlign.center,
                 ),

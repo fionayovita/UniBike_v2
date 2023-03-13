@@ -244,7 +244,8 @@ class _ListBikePageState extends State<ListBikePage> {
                         width: 250,
                         height: 250,
                       ),
-                      Text("Terjadi error, silahkan muat ulang halaman.",
+                      Text(
+                          "Terjadi error, silahkan muat ulang halaman dan cek koneksi anda..",
                           style: Theme.of(context).textTheme.headline5)
                     ],
                   ),
@@ -261,7 +262,7 @@ class _ListBikePageState extends State<ListBikePage> {
                       height: 250,
                     ),
                     Text(
-                      'Tidak ada koneksi, silahkan muat ulang halaman.',
+                      'Tidak ada koneksi, silahkan muat ulang halaman dan cek koneksi anda.',
                       style: Theme.of(context).textTheme.headline5,
                       textAlign: TextAlign.center,
                     )

@@ -141,10 +141,19 @@ class _LoginPageState extends State<LoginPage> {
                     hintStyle: Theme.of(context).textTheme.subtitle2,
                   ),
                 ),
-                SizedBox(height: 24.0),
               ],
             ),
           ),
+          TextButton(
+              style: TextButton.styleFrom(
+                  padding: EdgeInsets.all(0),
+                  foregroundColor: lightBlue,
+                  textStyle: Theme.of(context).textTheme.headline6),
+              child: Text(
+                'Lupa Password?',
+              ),
+              onPressed: () {}),
+          SizedBox(height: 24.0),
           Align(
             alignment: Alignment.bottomCenter,
             child: Column(
