@@ -7,35 +7,30 @@ UniBike memiliki beberapa fitur, diantaranya:\
 ● Fitur Peminjaman Sepeda\
 ● Fitur Pengembalian Sepeda\
 ● Fitur Daftar Sepeda dan pilih sepeda\
-● Fitur Pencarian Fakultas\
-● Fitur Notifikasi Waktu Pengembalian Sepeda
+● Fitur Filter sepeda berdasarkan jenis]
 ● Fitur Riwayat Peminjaman Sepeda
 
 
 <table>
   <tr>
-     <td>Splash Screen</td>
-    <td>Login Page</td>
-     <td>Register Page</td>
-     <td>Main Page</td>
+     <td>Login Page</td>
+    <td>Main Page</td>
+     <td>List Bike Page</td>
+     <td>Bike Detail Page</td>
   </tr>
   <tr>
-    <td><img alt='Login Page' src="https://github.com/fionayovita/images/blob/main/unibike%20assets/splash%20screen.jpg" width="200"></td>
-    <td><img alt='Login Page' src="https://github.com/fionayovita/images/blob/main/unibike%20assets/login.jpg" width="200"></td>
-    <td><img alt='Register Page' src="https://github.com/fionayovita/images/blob/main/unibike%20assets/register.jpg" width="200"></td>
-    <td><img alt='Maim Page' src="https://github.com/fionayovita/images/blob/main/unibike%20assets/mainpage.jpg" width="200"></td>
+    <td><img alt='Login Page' src="https://github.com/fionayovita/images/blob/main/unibike%20assets/Screenshot_1681835087.png" width="200"></td>
+    <td><img alt='Main Page' src="https://github.com/fionayovita/images/blob/main/unibike%20assets/Screenshot_1677928296.png" width="200"></td>
+    <td><img alt='List Bike Page' src="https://github.com/fionayovita/images/blob/main/unibike%20assets/Screenshot_1678529520.png" width="200"></td>
+    <td><img alt='Bike Detail Page' src="https://github.com/fionayovita/images/blob/main/unibike%20assets/Screenshot_1680240543.png" width="200"></td>
   </tr>
   <tr>
-    <td>Detail Page</td>
-    <td>Status Peminjaman Page</td>
-     <td>Riwayat Peminjaman Page</td>
-     <td>Profile Page</td>
+    <td>Profile Page</td>
+    <td>History Page</td>
   </tr>
   <tr>
-    <td><img alt='Detail Page' src="https://github.com/fionayovita/images/blob/main/unibike%20assets/detail.jpg" width="200"></td>
-    <td><img alt='Status Peminjaman Page' src="https://github.com/fionayovita/images/blob/main/unibike%20assets/status%20peminjaman.jpg" width="200"></td>
-    <td><img alt='Riwayat Peminjaman Page' src="https://github.com/fionayovita/images/blob/main/unibike%20assets/riwayat%20peminjaman.jpg" width="200"></td>
-    <td><img alt='Profile Page' src="https://github.com/fionayovita/images/blob/main/unibike%20assets/profile.jpg" width="200"></td>
+    <td><img alt='Profile Page' src="https://github.com/fionayovita/images/blob/main/unibike%20assets/Screenshot_1681834159.png" width="200"></td>
+    <td><img alt='History Page' src="https://github.com/fionayovita/images/blob/main/unibike%20assets/Screenshot_1681834033.png" width="200"></td>
   </tr>
  </table>
 
@@ -50,14 +45,9 @@ Untuk mengembangkan aplikasi UniBike kami membutuhkan beberapa resources, dianta
 3. Package [Firebase](https://firebase.google.com/)
 4. Package [Http](https://pub.dev/packages/http)
 5. Package [Provider](https://https://pub.dev/packages/provider)
-6. Package [Curved Navigation Bar](https://pub.dev/packages/curved_navigation_bar)
-7. Package [Intl](https://pub.dev/packages/intl)
-8. Package [Shared Preferences](https://pub.dev/packages/shared_preferences)
-9. Package [Android Alarm Manager](https://pub.dev/packages/android_alarm_manager)
-10. Package [Flutter Local Notifications](https://pub.dev/packages/flutter_local_notifications)
-11. Package [RxDart](https://pub.dev/packages/rxdart)
-12. Package [Image Picker](https://pub.dev/packages/image_picker)
-13. Package [Firebase Storage](https://pub.dev/packages/firebase_storage)
+6. Package [Image Picker](https://pub.dev/packages/image_picker)
+7. Package [Firebase Storage](https://pub.dev/packages/firebase_storage)
+
 
 ## Referensi Lain
 1. [Aplikasi Peminjaman Sepeda Berbasis Website dan Android - Telkom University](https://core.ac.uk/reader/299903990)
